@@ -1,0 +1,14 @@
+{
+  "name": "pewpew-bot",
+  "version": "0.0.0",
+  "description": "A dummy bot for pewpew",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ws": "^0.7.2"
+  }
+}
