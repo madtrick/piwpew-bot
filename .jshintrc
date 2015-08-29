@@ -15,5 +15,6 @@
   "maxdepth": 3,
   "maxlen": 100,
   "nomen": true,
-  "trailing": true
+  "trailing": true,
+  "esnext": true
 }

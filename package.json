@@ -4,11 +4,21 @@
   "description": "A dummy bot for pewpew",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "gulp && node dist/index.js",
+    "test": "mocha --compilers js:babel/register"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "lodash": "^3.10.0",
     "ws": "^0.7.2"
+  },
+  "devDependencies": {
+    "babel": "^5.8.23",
+    "chai": "^3.2.0",
+    "dirty-chai": "^1.2.2",
+    "gulp": "^3.9.0",
+    "gulp-babel": "^5.2.1",
+    "mocha": "^2.2.5"
   }
 }

@@ -1,48 +1,67 @@
 'use strict';
 
 var WebSocket = require('ws');
+var _         = require('lodash');
 
 var ws = new WebSocket('ws://localhost:8080');
-var rotation = 30;
 
-function move (ws, direction) {
-  if (rotation === 30) {
-    rotation = 330;
-  } else {
-    rotation = 30;
+function move (ws, direction, rotation) {
+  rotation = rotation || 45;
+
+  console.log('Direction', direction, 'rotation', rotation);
+
+  ws.send(JSON.stringify({
+    type: 'MovePlayerCommand',
+    data: [
+      {move: direction},
+      {rotate: rotation}
+    ]
+  }));
+}
+
+function analyzeMessage (ws, message) {
+  var data = message.data;
+  var rotation = 45;
+  var direction = 'forward';
+
+
+  switch (message.type) {
+    case 'RadarScanNotification':
+      if (data.walls.length > 0) {
+        rotation = _.random(rotation + 90, rotation + 270);
+        move(ws, 'forward', rotation);
+      }
+
+      break;
+    case 'RegisterPlayerAck':
+      break;
+    case 'StartGameOrder':
+      move(ws, 'forward');
+      break;
+    case 'MovePlayerAck':
+      if (data.x > 700) {
+        direction = 'backward';
+      } else if (data.x < 700 || data.x > 100) {
+        direction = 'forward';
+      }
+
+      move(ws, direction);
+      break;
+    default:
+      console.log('unexpected message');
   }
+}
 
-  ws.send(JSON.stringify({type: 'MovePlayerCommand', data: [{move: direction}, {rotate: rotation}]}));
+function analyzeMessages (ws, messages) {
+  messages.forEach(_.partial(analyzeMessage, ws));
 }
 
 ws.on('open', function open () {
-  var direction = 'forward';
-
   ws.send(JSON.stringify({type: 'RegisterPlayerCommand', data: {}}), { mask: true });
 
   ws.on('message', function (json) {
-    var message = JSON.parse(json)[0];
-    var data    = message.data;
+    var messages = JSON.parse(json);
 
-    console.log('message received: ', message.type);
-
-    switch (message.type) {
-      case 'RegisterPlayerAck':
-        break;
-      case 'StartGameOrder':
-        move(ws, 'forward');
-        break;
-      case 'MovePlayerAck':
-        if (data.x > 700) {
-          direction = 'backward';
-        } else if (data.x < 100) {
-          direction = 'forward';
-        }
-
-        move(ws, direction);
-        break;
-      default:
-        console.log('unexpected message');
-    }
+    analyzeMessages(ws, messages);
   });
 });

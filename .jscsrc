@@ -59,5 +59,6 @@
   "validateIndentation": 2,
   "validateLineBreaks": "LF",
   "validateParameterSeparator": ", ",
-  "validateQuoteMarks": "'"
+  "validateQuoteMarks": "'",
+  "esnext": true
 }
