@@ -19,6 +19,7 @@
     "dirty-chai": "^1.2.2",
     "gulp": "^3.9.0",
     "gulp-babel": "^5.2.1",
-    "mocha": "^2.2.5"
+    "mocha": "^2.2.5",
+    "ray-vs-circle": "^2.0.0"
   }
 }

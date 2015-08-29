@@ -8,7 +8,7 @@ var ws = new WebSocket('ws://localhost:8080');
 function move (ws, direction, rotation) {
   rotation = rotation || 45;
 
-  console.log('Direction', direction, 'rotation', rotation);
+  //console.log('Direction', direction, 'rotation', rotation);
 
   ws.send(JSON.stringify({
     type: 'MovePlayerCommand',
@@ -27,7 +27,10 @@ function analyzeMessage (ws, message) {
 
   switch (message.type) {
     case 'RadarScanNotification':
+      console.log('Radar');
       if (data.walls.length > 0) {
+        var util = require('util');
+        console.log(util.inspect(data.walls, {showHidden: false, depth: null}));
         rotation = _.random(rotation + 90, rotation + 270);
         move(ws, 'forward', rotation);
       }
