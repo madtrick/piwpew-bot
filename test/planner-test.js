@@ -36,6 +36,23 @@ describe('Planner', function () {
 
     describe('when there is a wall in the radar', function () {
       describe('and its a vertical wall', function () {
+        describe('when the player is tangential to the wall', function () {
+          it('maintains the same direction and rotation', function () {
+            let initialPosition = {direction: 'forward', position: {x: 360, y: 90}, rotation: 0};
+            this.planner = new Planner(initialPosition);
+            let scan = factory.RadarScanNotification({
+              walls: collisionCalculator(initialPosition.position, 40)
+            });
+
+            this.planner.movements.last = {rotation: 0, direction: 'forward'};
+            this.planner.locations.current = initialPosition.position;
+            let movement = this.planner.calculate(scan.data);
+
+            expect(movement.direction).to.equal('forward');
+            expect(movement.rotation).to.equal(0);
+          });
+        });
+
         it('it turns 180 degrees and keeps the same direction', function () {
           let initialPosition = {direction: 'forward', position: {x: 390, y: 90}, rotation: 0};
           this.planner = new Planner(initialPosition);
@@ -71,6 +88,23 @@ describe('Planner', function () {
 
       describe('and its a horizontal wall', function () {
         describe('and the player is moving in direction to the wall', function () {
+          describe('when the player is tangential to the wall', function () {
+            it('maintains the same direction and rotation', function () {
+              let initialPosition = {direction: 'forward', position: {x: 50, y: 360}, rotation: 90};
+              this.planner = new Planner(initialPosition);
+              let scan = factory.RadarScanNotification({
+                walls: collisionCalculator(initialPosition.position, 40)
+              });
+
+              this.planner.movements.last = {rotation: 90, direction: 'forward'};
+              this.planner.locations.current = initialPosition.position;
+              let movement = this.planner.calculate(scan.data);
+
+              expect(movement.direction).to.equal('forward');
+              expect(movement.rotation).to.equal(90);
+            });
+          });
+
           it('maintains the same direction but turns 180 degrees', function () {
             let initialPosition = {direction: 'forward', position: {x: 50, y: 390}, rotation: 90};
             this.planner = new Planner(initialPosition);
