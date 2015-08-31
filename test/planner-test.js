@@ -36,6 +36,42 @@ describe('Planner', function () {
 
     describe('when there is a wall in the radar', function () {
       describe('and its a vertical wall', function () {
+        describe('and the player is parallel to the wall', function () {
+          describe('to its left', function () {
+            it('maintains the same direction but rotates 90 degrees', function () {
+              let initialPosition = {direction: 'forward', position: {x: 380, y: 90}, rotation: 90};
+              this.planner = new Planner(initialPosition);
+              let scan = factory.RadarScanNotification({
+                walls: collisionCalculator(initialPosition.position, 40)
+              });
+
+              this.planner.movements.last = {rotation: 90, direction: 'forward'};
+              this.planner.locations.current = initialPosition.position;
+              let movement = this.planner.calculate(scan.data);
+
+              expect(movement.direction).to.equal('forward');
+              expect(movement.rotation).to.equal(180);
+            });
+          });
+
+          describe('to its right', function () {
+            it('maintains the same direction but rotates 90 degrees', function () {
+              let initialPosition = {direction: 'forward', position: {x: 30, y: 90}, rotation: 90};
+              this.planner = new Planner(initialPosition);
+              let scan = factory.RadarScanNotification({
+                walls: collisionCalculator(initialPosition.position, 40)
+              });
+
+              this.planner.movements.last = {rotation: 90, direction: 'forward'};
+              this.planner.locations.current = initialPosition.position;
+              let movement = this.planner.calculate(scan.data);
+
+              expect(movement.direction).to.equal('forward');
+              expect(movement.rotation).to.equal(0);
+            });
+          });
+        });
+
         describe('when the player is tangential to the wall', function () {
           it('maintains the same direction and rotation', function () {
             let initialPosition = {direction: 'forward', position: {x: 360, y: 90}, rotation: 0};
@@ -87,6 +123,42 @@ describe('Planner', function () {
       });
 
       describe('and its a horizontal wall', function () {
+        describe('and the player is parallel to the wall', function () {
+          describe('above it', function () {
+            it('maintains the same direction but rotates 90 degrees', function () {
+              let initialPosition = {direction: 'forward', position: {x: 100, y: 30}, rotation: 0};
+              this.planner = new Planner(initialPosition);
+              let scan = factory.RadarScanNotification({
+                walls: collisionCalculator(initialPosition.position, 40)
+              });
+
+              this.planner.movements.last = {rotation: 0, direction: 'forward'};
+              this.planner.locations.current = initialPosition.position;
+              let movement = this.planner.calculate(scan.data);
+
+              expect(movement.direction).to.equal('forward');
+              expect(movement.rotation).to.equal(90);
+            });
+          });
+
+          describe('below it', function () {
+            it('maintains the same direction but rotates 90 degrees', function () {
+              let initialPosition = {direction: 'forward', position: {x: 100, y: 380}, rotation: 0};
+              this.planner = new Planner(initialPosition);
+              let scan = factory.RadarScanNotification({
+                walls: collisionCalculator(initialPosition.position, 40)
+              });
+
+              this.planner.movements.last = {rotation: 0, direction: 'forward'};
+              this.planner.locations.current = initialPosition.position;
+              let movement = this.planner.calculate(scan.data);
+
+              expect(movement.direction).to.equal('forward');
+              expect(movement.rotation).to.equal(270);
+            });
+          });
+        });
+
         describe('and the player is moving in direction to the wall', function () {
           describe('when the player is tangential to the wall', function () {
             it('maintains the same direction and rotation', function () {
