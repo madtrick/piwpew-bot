@@ -89,19 +89,29 @@ describe('Planner', function () {
           });
         });
 
-        it('it turns 180 degrees and keeps the same direction', function () {
-          let initialPosition = {direction: 'forward', position: {x: 390, y: 90}, rotation: 0};
-          this.planner = new Planner(initialPosition);
-          let scan = factory.RadarScanNotification({
-            walls: collisionCalculator(initialPosition.position, 40)
+        [
+          {coordinates: {x: 390, y: 90}, rotation: 0, expectations: {rotation: 180}},
+          {coordinates: {x: 390, y: 90}, rotation: 180, expectations: {rotation: 180}},
+          {coordinates: {x: 30, y: 90}, rotation: 180, expectations: {rotation: 0}},
+          {coordinates: {x: 30, y: 90}, rotation: 0, expectations: {rotation: 0}}
+        ].forEach((data) => {
+          it('it turns 180 degrees and keeps the same direction', function () {
+            let initialPosition = {
+              direction: 'forward',
+              position: data.coordinates, rotation: data.rotation
+            };
+            this.planner = new Planner(initialPosition);
+            let scan = factory.RadarScanNotification({
+              walls: collisionCalculator(initialPosition.position, 40)
+            });
+
+            this.planner.movements.last = {rotation: data.rotation, direction: 'forward'};
+            this.planner.locations.current = initialPosition.position;
+            let movement = this.planner.calculate(scan.data);
+
+            expect(movement.direction).to.equal('forward');
+            expect(movement.rotation).to.equal(data.expectations.rotation);
           });
-
-          this.planner.movements.last = {rotation: 0, direction: 'forward'};
-          this.planner.locations.current = initialPosition.position;
-          let movement = this.planner.calculate(scan.data);
-
-          expect(movement.direction).to.equal('forward');
-          expect(movement.rotation).to.equal(180);
         });
 
         describe('and the player is moving away from the wall', function () {
@@ -177,19 +187,30 @@ describe('Planner', function () {
             });
           });
 
-          it('maintains the same direction but turns 180 degrees', function () {
-            let initialPosition = {direction: 'forward', position: {x: 50, y: 390}, rotation: 90};
-            this.planner = new Planner(initialPosition);
-            let scan = factory.RadarScanNotification({
-              walls: collisionCalculator(initialPosition.position, 40)
+          [
+            {coordinates: {x: 50, y: 390}, rotation: 90, expectations: {rotation: 270}},
+            {coordinates: {x: 50, y: 390}, rotation: 270, expectations: {rotation: 270}},
+            {coordinates: {x: 50, y: 30}, rotation: 270, expectations: {rotation: 90}},
+            {coordinates: {x: 50, y: 30}, rotation: 90, expectations: {rotation: 90}}
+          ].forEach((data) => {
+            it('maintains the same direction but turns 180 degrees', function () {
+              let initialPosition = {
+                direction: 'forward',
+                position: data.coordinates,
+                rotation: data.rotation
+              };
+              this.planner = new Planner(initialPosition);
+              let scan = factory.RadarScanNotification({
+                walls: collisionCalculator(initialPosition.position, 40)
+              });
+
+              this.planner.movements.last = {rotation: data.rotation, direction: 'forward'};
+              this.planner.locations.current = initialPosition.position;
+              let movement = this.planner.calculate(scan.data);
+
+              expect(movement.direction).to.equal('forward');
+              expect(movement.rotation).to.equal(data.expectations.rotation);
             });
-
-            this.planner.movements.last = {rotation: 90, direction: 'forward'};
-            this.planner.locations.current = initialPosition.position;
-            let movement = this.planner.calculate(scan.data);
-
-            expect(movement.direction).to.equal('forward');
-            expect(movement.rotation).to.equal(270);
           });
         });
 
