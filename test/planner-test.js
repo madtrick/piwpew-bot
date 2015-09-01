@@ -35,58 +35,61 @@ describe('Planner', function () {
     });
 
     describe('when there is a wall in the radar', function () {
-      describe('and its a vertical wall', function () {
-        describe('and the player is parallel to the wall', function () {
-          describe('to its left', function () {
-            it('maintains the same direction but rotates 90 degrees', function () {
-              let initialPosition = {direction: 'forward', position: {x: 380, y: 90}, rotation: 90};
-              this.planner = new Planner(initialPosition);
-              let scan = factory.RadarScanNotification({
-                walls: collisionCalculator(initialPosition.position, 40)
-              });
+      function prepareEnvironment (options, context) {
+        let planner = new Planner(options);
+        let scan = factory.RadarScanNotification({
+          walls: collisionCalculator(options.position, 40)
+        });
 
-              this.planner.movements.last = {rotation: 90, direction: 'forward'};
-              this.planner.locations.current = initialPosition.position;
-              let movement = this.planner.calculate(scan.data);
+        planner.locations.current = options.position;
+        context.movement          = planner.calculate(scan.data);
+      }
 
-              expect(movement.direction).to.equal('forward');
-              expect(movement.rotation).to.equal(180);
-            });
+      function when (description, options) {
+        describe(description, function () {
+          beforeEach(function () {
+            prepareEnvironment({
+              direction: options.setup.direction,
+              position: options.setup.position,
+              rotation: options.setup.rotation
+            }, this);
           });
 
-          describe('to its right', function () {
-            it('maintains the same direction but rotates 90 degrees', function () {
-              let initialPosition = {direction: 'forward', position: {x: 30, y: 90}, rotation: 90};
-              this.planner = new Planner(initialPosition);
-              let scan = factory.RadarScanNotification({
-                walls: collisionCalculator(initialPosition.position, 40)
-              });
+          it(options.it, function () {
+            expect(this.movement.direction).to.equal(options.expects.direction);
+            expect(this.movement.rotation).to.equal(options.expects.rotation);
+          });
+        });
+      }
 
-              this.planner.movements.last = {rotation: 90, direction: 'forward'};
-              this.planner.locations.current = initialPosition.position;
-              let movement = this.planner.calculate(scan.data);
+      describe('and its a vertical wall', function () {
+        describe('and the player is parallel to the wall', function () {
+          when('the player is to the left of the wall', {
+            setup: {direction: 'forward', position: {x: 380, y: 90}, rotation: 90},
+            it: 'maintains the same direction but rotates 90 degress',
+            expects: {
+              direction: 'forward',
+              rotation: 180
+            }
+          });
 
-              expect(movement.direction).to.equal('forward');
-              expect(movement.rotation).to.equal(0);
-            });
+          when('the player is to the right of the wall', {
+            setup: {direction: 'forward', position: {x: 30, y: 90}, rotation: 90},
+            it: 'maintains the same direction but rotates 90 degress',
+            expects: {
+              direction: 'forward',
+              rotation: 0
+            }
           });
         });
 
-        describe('when the player is tangential to the wall', function () {
-          it('maintains the same direction and rotation', function () {
-            let initialPosition = {direction: 'forward', position: {x: 360, y: 90}, rotation: 0};
-            this.planner = new Planner(initialPosition);
-            let scan = factory.RadarScanNotification({
-              walls: collisionCalculator(initialPosition.position, 40)
-            });
-
-            this.planner.movements.last = {rotation: 0, direction: 'forward'};
-            this.planner.locations.current = initialPosition.position;
-            let movement = this.planner.calculate(scan.data);
-
-            expect(movement.direction).to.equal('forward');
-            expect(movement.rotation).to.equal(0);
-          });
+        when('the player is tangential to the wall', {
+          setup: {direction: 'forward', position: {x: 360, y: 90}, rotation: 0},
+          it: 'maintains the same direction and rotation',
+          expects: {
+            direction: 'forward',
+            rotation: 0
+          }
         });
 
         [
@@ -95,96 +98,55 @@ describe('Planner', function () {
           {coordinates: {x: 30, y: 90}, rotation: 180, expectations: {rotation: 0}},
           {coordinates: {x: 30, y: 90}, rotation: 0, expectations: {rotation: 0}}
         ].forEach((data) => {
-          it('it turns 180 degrees and keeps the same direction', function () {
-            let initialPosition = {
+          when('the coordinates are ' + JSON.stringify(data.coordinates), {
+            setup: {direction: 'forward', position: data.coordinates, rotation: data.rotation},
+            it: 'turns 180 degrees and keeps the same direction',
+            expects: {
               direction: 'forward',
-              position: data.coordinates, rotation: data.rotation
-            };
-            this.planner = new Planner(initialPosition);
-            let scan = factory.RadarScanNotification({
-              walls: collisionCalculator(initialPosition.position, 40)
-            });
-
-            this.planner.movements.last = {rotation: data.rotation, direction: 'forward'};
-            this.planner.locations.current = initialPosition.position;
-            let movement = this.planner.calculate(scan.data);
-
-            expect(movement.direction).to.equal('forward');
-            expect(movement.rotation).to.equal(data.expectations.rotation);
+              rotation: data.expectations.rotation
+            }
           });
         });
 
-        describe('and the player is moving away from the wall', function () {
-          it('maintains the same direction and rotation', function () {
-            let initialPosition = {direction: 'forward', position: {x: 390, y: 90}, rotation: 180};
-            this.planner = new Planner(initialPosition);
-            let scan = factory.RadarScanNotification({
-              walls: collisionCalculator(initialPosition.position, 40)
-            });
-
-            this.planner.movements.last = {rotation: 180, direction: 'forward'};
-            this.planner.locations.current = initialPosition.position;
-            let movement = this.planner.calculate(scan.data);
-
-            expect(movement.direction).to.equal('forward');
-            expect(movement.rotation).to.equal(180);
-          });
+        when('and the player is moving away from the wall', {
+          setup: {direction: 'forward', position: {x: 390, y: 90}, rotation: 180},
+          it: 'maintains the same direction and rotation',
+          expects: {
+            direction: 'forward',
+            rotation: 180
+          }
         });
       });
 
       describe('and its a horizontal wall', function () {
         describe('and the player is parallel to the wall', function () {
-          describe('above it', function () {
-            it('maintains the same direction but rotates 90 degrees', function () {
-              let initialPosition = {direction: 'forward', position: {x: 100, y: 30}, rotation: 0};
-              this.planner = new Planner(initialPosition);
-              let scan = factory.RadarScanNotification({
-                walls: collisionCalculator(initialPosition.position, 40)
-              });
-
-              this.planner.movements.last = {rotation: 0, direction: 'forward'};
-              this.planner.locations.current = initialPosition.position;
-              let movement = this.planner.calculate(scan.data);
-
-              expect(movement.direction).to.equal('forward');
-              expect(movement.rotation).to.equal(90);
-            });
+          when('and the player is above the wall', {
+            setup: {direction: 'forward', position: {x: 100, y: 30}, rotation: 0},
+            it: 'maintains the same direction but rotates 90 degrees',
+            expects: {
+              direction: 'forward',
+              rotation: 90
+            }
           });
 
-          describe('below it', function () {
-            it('maintains the same direction but rotates 90 degrees', function () {
-              let initialPosition = {direction: 'forward', position: {x: 100, y: 380}, rotation: 0};
-              this.planner = new Planner(initialPosition);
-              let scan = factory.RadarScanNotification({
-                walls: collisionCalculator(initialPosition.position, 40)
-              });
-
-              this.planner.movements.last = {rotation: 0, direction: 'forward'};
-              this.planner.locations.current = initialPosition.position;
-              let movement = this.planner.calculate(scan.data);
-
-              expect(movement.direction).to.equal('forward');
-              expect(movement.rotation).to.equal(270);
-            });
+          when('and the player is below the wall', {
+            setup: {direction: 'forward', position: {x: 100, y: 380}, rotation: 0},
+            it: 'maintains the same direction but rotates 90 degrees',
+            expects: {
+              direction: 'forward',
+              rotation: 270
+            }
           });
         });
 
         describe('and the player is moving in direction to the wall', function () {
-          describe('when the player is tangential to the wall', function () {
-            it('maintains the same direction and rotation', function () {
-              let initialPosition = {direction: 'forward', position: {x: 50, y: 360}, rotation: 90};
-              this.planner = new Planner(initialPosition);
-              let scan = factory.RadarScanNotification({
-                walls: collisionCalculator(initialPosition.position, 40)
-              });
-
-              this.planner.movements.last = {rotation: 90, direction: 'forward'};
-              this.planner.locations.current = initialPosition.position;
-              let movement = this.planner.calculate(scan.data);
-
-              expect(movement.direction).to.equal('forward');
-              expect(movement.rotation).to.equal(90);
-            });
+          when('when the player is tangential to the wall', {
+            setup: {direction: 'forward', position: {x: 50, y: 360}, rotation: 90},
+            it: 'maintains the same direction and rotation',
+            expects: {
+              direction: 'forward',
+              rotation: 90
+            }
           });
 
           [
@@ -193,42 +155,24 @@ describe('Planner', function () {
             {coordinates: {x: 50, y: 30}, rotation: 270, expectations: {rotation: 90}},
             {coordinates: {x: 50, y: 30}, rotation: 90, expectations: {rotation: 90}}
           ].forEach((data) => {
-            it('maintains the same direction but turns 180 degrees', function () {
-              let initialPosition = {
+            when('the coordinates are ' + JSON.stringify(data.coordinates), {
+              setup: {direction: 'forward', position: data.coordinates, rotation: data.rotation},
+              it: 'maintains the same direction but turns 180 degrees',
+              expects: {
                 direction: 'forward',
-                position: data.coordinates,
-                rotation: data.rotation
-              };
-              this.planner = new Planner(initialPosition);
-              let scan = factory.RadarScanNotification({
-                walls: collisionCalculator(initialPosition.position, 40)
-              });
-
-              this.planner.movements.last = {rotation: data.rotation, direction: 'forward'};
-              this.planner.locations.current = initialPosition.position;
-              let movement = this.planner.calculate(scan.data);
-
-              expect(movement.direction).to.equal('forward');
-              expect(movement.rotation).to.equal(data.expectations.rotation);
+                rotation: data.expectations.rotation
+              }
             });
           });
         });
 
-        describe('and the player is moving away from the wall', function () {
-          it('maintains the same direction and rotation', function () {
-            let initialPosition = {direction: 'forward', position: {x: 50, y: 390}, rotation: 270};
-            this.planner = new Planner(initialPosition);
-            let scan = factory.RadarScanNotification({
-              walls: collisionCalculator(initialPosition.position, 40)
-            });
-
-            this.planner.movements.last = {rotation: 270, direction: 'forward'};
-            this.planner.locations.current = initialPosition.position;
-            let movement = this.planner.calculate(scan.data);
-
-            expect(movement.direction).to.equal('forward');
-            expect(movement.rotation).to.equal(270);
-          });
+        when('and the player is moving away from the wall', {
+          setup: {direction: 'forward', position: {x: 50, y: 360}, rotation: 270},
+          it: 'maintains the same direction and rotation',
+          expects: {
+            direction: 'forward',
+            rotation: 270
+          }
         });
       });
     });
