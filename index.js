@@ -3,56 +3,69 @@
 var WebSocket = require('ws');
 var _         = require('lodash');
 
+var Planner  = require('./lib/planner');
+
 var ws = new WebSocket('ws://localhost:8080');
+var bot = {};
 
-function move (ws, direction, rotation) {
-  rotation = rotation || 45;
-
-  //console.log('Direction', direction, 'rotation', rotation);
-
+function move (ws, movement) {
+  var util = require('util');
+  console.log(util.inspect(movement, {showHidden: false, depth: null}));
   ws.send(JSON.stringify({
     type: 'MovePlayerCommand',
     data: [
-      {move: direction},
-      {rotate: rotation}
+      {move: movement.direction},
+      {rotate: movement.rotation}
     ]
   }));
 }
 
 function analyzeMessage (ws, message) {
   var data = message.data;
-  var rotation = 45;
-  var direction = 'forward';
-
 
   switch (message.type) {
     case 'RadarScanNotification':
-      console.log('Radar');
-      if (data.walls.length > 0) {
-        var util = require('util');
-        console.log(util.inspect(data.walls, {showHidden: false, depth: null}));
-        rotation = _.random(rotation + 90, rotation + 270);
-        move(ws, 'forward', rotation);
-      }
+      let movement = bot.planner.calculate(data);
+
+      move(ws, movement);
 
       break;
     case 'RegisterPlayerAck':
+      let coordinates = {x: data.x, y: data.y};
+      let rotation = _.random(0, 360);
+
+      bot.planner = new Planner({direction: 'forward', position: coordinates, rotation: rotation});
       break;
     case 'StartGameOrder':
       move(ws, 'forward');
       break;
     case 'MovePlayerAck':
-      if (data.x > 700) {
-        direction = 'backward';
-      } else if (data.x < 700 || data.x > 100) {
-        direction = 'forward';
-      }
-
-      move(ws, direction);
+      bot.planner.locations.current = {x: data.x, y: data.y};
       break;
     default:
+      var util = require('util');
+      console.log(util.inspect(message, {showHidden: false, depth: null}));
       console.log('unexpected message');
   }
+}
+
+function orderMessages (messages) {
+  let order = ['MovePlayerAck', 'RadarScanNotification'];
+
+  return messages.sort((messageA, messageB) => {
+    let indexA = order.indexOf(messageA.type);
+    let indexB = order.indexOf(messageB.type);
+
+    if (indexA && indexB) {
+      return indexA - indexB;
+    }
+
+    if (indexA || indexB) {
+      return -1;
+    }
+
+    return 0;
+  });
 }
 
 function analyzeMessages (ws, messages) {
@@ -65,6 +78,6 @@ ws.on('open', function open () {
   ws.on('message', function (json) {
     var messages = JSON.parse(json);
 
-    analyzeMessages(ws, messages);
+    analyzeMessages(ws, orderMessages(messages));
   });
 });
