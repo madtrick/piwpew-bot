@@ -1,23 +1,30 @@
 'use strict';
 
+var fs        = require('fs');
+var path      = require('path');
 var WebSocket = require('ws');
 var _         = require('lodash');
+var yargs     = require('yargs');
 
 var Planner  = require('./lib/planner');
 
-var ws = new WebSocket('ws://localhost:8080');
-var bot = {};
+var ws              = new WebSocket('ws://localhost:8080');
+var bot             = {};
+var argv            = yargs.demand(['i']).argv;
+var messagesLogPath = path.join(__dirname, argv.i + '-messages.log');
 
 function move (ws, movement) {
-  var util = require('util');
-  console.log(util.inspect(movement, {showHidden: false, depth: null}));
-  ws.send(JSON.stringify({
+  var data = {
     type: 'MovePlayerCommand',
     data: [
       {move: movement.direction},
       {rotate: movement.rotation}
     ]
-  }));
+  };
+
+  writeMessagesToFile('send', data);
+
+  ws.send(JSON.stringify(data));
 }
 
 function analyzeMessage (ws, message) {
@@ -73,11 +80,26 @@ function analyzeMessages (ws, messages) {
 }
 
 ws.on('open', function open () {
+  truncateMessagesFile();
+
   ws.send(JSON.stringify({type: 'RegisterPlayerCommand', data: {}}), { mask: true });
 
   ws.on('message', function (json) {
     var messages = JSON.parse(json);
 
+    writeMessagesToFile('recv', messages);
     analyzeMessages(ws, orderMessages(messages));
   });
 });
+
+function truncateMessagesFile () {
+  if (fs.existsSync(messagesLogPath)) {
+    fs.truncateSync(messagesLogPath);
+  }
+}
+
+function writeMessagesToFile (prefix, messages) {
+  var data = '[' + prefix + ']' + JSON.stringify(messages) + '\n';
+
+  fs.appendFileSync(messagesLogPath, data);
+}

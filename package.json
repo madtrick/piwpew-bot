@@ -11,7 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "lodash": "^3.10.0",
-    "ws": "^0.7.2"
+    "ws": "^0.7.2",
+    "yargs": "^3.23.0"
   },
   "devDependencies": {
     "babel": "^5.8.23",
