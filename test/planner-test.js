@@ -93,8 +93,10 @@ describe('Planner', function () {
         });
 
         [
+          {coordinates: {x: 361, y: 226}, rotation: 352, expectations: {rotation: 172}},
           {coordinates: {x: 390, y: 90}, rotation: 0, expectations: {rotation: 180}},
           {coordinates: {x: 390, y: 90}, rotation: 180, expectations: {rotation: 180}},
+          {coordinates: {x: 39, y: 119}, rotation: 164, expectations: {rotation: 16}},
           {coordinates: {x: 30, y: 90}, rotation: 180, expectations: {rotation: 0}},
           {coordinates: {x: 30, y: 90}, rotation: 0, expectations: {rotation: 0}}
         ].forEach((data) => {
