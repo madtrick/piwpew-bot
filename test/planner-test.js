@@ -13,12 +13,21 @@ chai.use(dirtyChai);
 var expect   = chai.expect;
 
 describe('Planner', function () {
+  describe('#constructor', function () {
+    it('throws an error if there is no previous location', function () {
+      let fn = () => {
+        new Planner();
+      };
+      expect(fn).to.throw(Error);
+    });
+  });
+
   describe('#calculate', function () {
-    describe('when there is no wall ahead', function () {
+    describe('when there is no wall in the radar', function () {
       beforeEach(function () {
         this.planner = new Planner({
           direction: 'forward',
-          coordinates: {x: 200, y: 200},
+          position: {x: 200, y: 200},
           rotation: 0
         });
         this.scan    = factory.RadarScanNotification({
@@ -31,6 +40,66 @@ describe('Planner', function () {
 
         expect(movement.direction).to.equal('forward');
         expect(movement.rotation).to.equal(0);
+      });
+
+      describe('when there is a player in the radar', function () {
+        function theBot (description, data) {
+          it(description, function () {
+            let options = {
+              position: {x: 200, y: 200},
+              direction: 'forward',
+              rotation: 0,
+              tracker: data.isTracker
+            };
+
+            let planner = new Planner(options);
+            let scan = factory.RadarScanNotification({
+              elements: [{coordinates: data.player.coordinates, type: 'unknown'}]
+            });
+
+            this.movement = planner.calculate(scan.data);
+
+            expect(this.movement.direction).to.equal('forward');
+            expect(this.movement.rotation).to.equal(data.expectations.rotation);
+          });
+        }
+
+        [
+          {coordinates: {x: 210, y: 210}, expectations: {rotation: 45}},
+          {coordinates: {x: 190, y: 210}, expectations: {rotation: 135}},
+          {coordinates: {x: 190, y: 190}, expectations: {rotation: 225}},
+          {coordinates: {x: 210, y: 190}, expectations: {rotation: 315}},
+          {coordinates: {x: 190, y: 239}, expectations: {rotation: 104.38139459109061}},
+          {coordinates: {x: 190, y: 201}, expectations: {rotation: 174.28940686250036}},
+          {coordinates: {x: 190, y: 199}, expectations: {rotation: 185.71059313749964}},
+          {coordinates: {x: 190, y: 161}, expectations: {rotation: 255.6186054089094}},
+          {coordinates: {x: 210, y: 161}, expectations: {rotation: 284.3813945910906}},
+          {coordinates: {x: 210, y: 199}, expectations: {rotation: 354.28940686250036}},
+          {coordinates: {x: 200, y: 210}, expectations: {rotation: 90}},
+          {coordinates: {x: 200, y: 190}, expectations: {rotation: 270}},
+          {coordinates: {x: 210, y: 200}, expectations: {rotation: 0}},
+          {coordinates: {x: 190, y: 200}, expectations: {rotation: 180}}
+        ].forEach((data) => {
+          describe('when the bot is configured to not track players', function () {
+            describe('at ' + JSON.stringify(data.coordinates), function () {
+              theBot('moves forward and in the direction of the player', {
+                player: {coordinates: data.coordinates},
+                isTracker: false,
+                expectations: {rotation: 0}
+              });
+            });
+          });
+
+          describe('when the bot is configured to track players', function () {
+            describe('at ' + JSON.stringify(data.coordinates), function () {
+              theBot('moves forward and in the direction of the player', {
+                player: {coordinates: data.coordinates},
+                isTracker: true,
+                expectations: {rotation: data.expectations.rotation}
+              });
+            });
+          });
+        });
       });
     });
 
