@@ -2,9 +2,10 @@
 
 export default {
   'RadarScanNotification': (options) => {
-    let {walls, elements} = options;
+    let {walls, elements} = options || {};
 
     elements = elements || [];
+    walls    = walls || [];
 
     return {
       type: 'RadarScanNotification',

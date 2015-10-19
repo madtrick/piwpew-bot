@@ -36,10 +36,11 @@ describe('Planner', function () {
       });
 
       it('maintains the same direction and rotation', function () {
-        let movement = this.planner.calculate(this.scan);
+        let action = this.planner.calculate(this.scan);
 
-        expect(movement.direction).to.equal('forward');
-        expect(movement.rotation).to.equal(0);
+        expect(action.type).to.equal('move');
+        expect(action.data.direction).to.equal('forward');
+        expect(action.data.rotation).to.equal(0);
       });
 
       describe('when there is a player in the radar', function () {
@@ -57,10 +58,11 @@ describe('Planner', function () {
               elements: [{coordinates: data.player.coordinates, type: 'unknown'}]
             });
 
-            this.movement = planner.calculate(scan.data);
+            this.action = planner.calculate(scan.data);
 
-            expect(this.movement.direction).to.equal('forward');
-            expect(this.movement.rotation).to.equal(data.expectations.rotation);
+            expect(this.action.type).to.equal('move');
+            expect(this.action.data.direction).to.equal('forward');
+            expect(this.action.data.rotation).to.equal(data.expectations.rotation);
           });
         }
 
@@ -111,7 +113,7 @@ describe('Planner', function () {
         });
 
         planner.locations.current = options.position;
-        context.movement          = planner.calculate(scan.data);
+        context.action          = planner.calculate(scan.data);
       }
 
       function when (description, options) {
@@ -125,8 +127,9 @@ describe('Planner', function () {
           });
 
           it(options.it, function () {
-            expect(this.movement.direction).to.equal(options.expects.direction);
-            expect(this.movement.rotation).to.equal(options.expects.rotation);
+            expect(this.action.type).to.equal('move');
+            expect(this.action.data.direction).to.equal(options.expects.direction);
+            expect(this.action.data.rotation).to.equal(options.expects.rotation);
           });
         });
       }
