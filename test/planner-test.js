@@ -67,6 +67,33 @@ describe('Planner', function () {
         }
 
         [
+          {coordinates: {x: 210, y: 210}, expectations: {rotation: 225}},
+          {coordinates: {x: 190, y: 210}, expectations: {rotation: 315}},
+          {coordinates: {x: 190, y: 190}, expectations: {rotation: 45}},
+          {coordinates: {x: 210, y: 190}, expectations: {rotation: 135}},
+          {coordinates: {x: 190, y: 239}, expectations: {rotation: 284.38139459109061}},
+          {coordinates: {x: 190, y: 201}, expectations: {rotation: 354.28940686250036}},
+          {coordinates: {x: 190, y: 199}, expectations: {rotation: 5.710593137499643}},
+          {coordinates: {x: 190, y: 161}, expectations: {rotation: 75.61860540890939}},
+          {coordinates: {x: 210, y: 161}, expectations: {rotation: 104.38139459109061}},
+          {coordinates: {x: 210, y: 199}, expectations: {rotation: 174.2894068625003}},
+          {coordinates: {x: 200, y: 210}, expectations: {rotation: 270}},
+          {coordinates: {x: 200, y: 190}, expectations: {rotation: 90}},
+          {coordinates: {x: 210, y: 200}, expectations: {rotation: 180}},
+          {coordinates: {x: 190, y: 200}, expectations: {rotation: 0}}
+        ].forEach((data) => {
+          describe('when the bot is configured to not track players', function () {
+            describe('at ' + JSON.stringify(data.coordinates), function () {
+              theBot('moves forward and opposite to the player', {
+                player: {coordinates: data.coordinates},
+                isTracker: false,
+                expectations: {rotation: data.expectations.rotation}
+              });
+            });
+          });
+        });
+
+        [
           {coordinates: {x: 210, y: 210}, expectations: {rotation: 45}},
           {coordinates: {x: 190, y: 210}, expectations: {rotation: 135}},
           {coordinates: {x: 190, y: 190}, expectations: {rotation: 225}},
@@ -82,16 +109,6 @@ describe('Planner', function () {
           {coordinates: {x: 210, y: 200}, expectations: {rotation: 0}},
           {coordinates: {x: 190, y: 200}, expectations: {rotation: 180}}
         ].forEach((data) => {
-          describe('when the bot is configured to not track players', function () {
-            describe('at ' + JSON.stringify(data.coordinates), function () {
-              theBot('moves forward and in the direction of the player', {
-                player: {coordinates: data.coordinates},
-                isTracker: false,
-                expectations: {rotation: 0}
-              });
-            });
-          });
-
           describe('when the bot is configured to track players', function () {
             describe('at ' + JSON.stringify(data.coordinates), function () {
               theBot('moves forward and in the direction of the player', {
@@ -104,150 +121,150 @@ describe('Planner', function () {
         });
       });
     });
+  });
 
-    describe('when there is a wall in the radar', function () {
-      function prepareEnvironment (options, context) {
-        let planner = new Planner(options);
-        let scan = factory.RadarScanNotification({
-          walls: collisionCalculator(options.position, 40)
+  describe('when there is a wall in the radar', function () {
+    function prepareEnvironment (options, context) {
+      let planner = new Planner(options);
+      let scan = factory.RadarScanNotification({
+        walls: collisionCalculator(options.position, 40)
+      });
+
+      planner.locations.current = options.position;
+      context.action          = planner.calculate(scan.data);
+    }
+
+    function when (description, options) {
+      describe(description, function () {
+        beforeEach(function () {
+          prepareEnvironment({
+            direction: options.setup.direction,
+            position: options.setup.position,
+            rotation: options.setup.rotation
+          }, this);
         });
 
-        planner.locations.current = options.position;
-        context.action          = planner.calculate(scan.data);
-      }
-
-      function when (description, options) {
-        describe(description, function () {
-          beforeEach(function () {
-            prepareEnvironment({
-              direction: options.setup.direction,
-              position: options.setup.position,
-              rotation: options.setup.rotation
-            }, this);
-          });
-
-          it(options.it, function () {
-            expect(this.action.type).to.equal('move');
-            expect(this.action.data.direction).to.equal(options.expects.direction);
-            expect(this.action.data.rotation).to.equal(options.expects.rotation);
-          });
+        it(options.it, function () {
+          expect(this.action.type).to.equal('move');
+          expect(this.action.data.direction).to.equal(options.expects.direction);
+          expect(this.action.data.rotation).to.equal(options.expects.rotation);
         });
-      }
+      });
+    }
 
-      describe('and its a vertical wall', function () {
-        describe('and the player is parallel to the wall', function () {
-          when('the player is to the left of the wall', {
-            setup: {direction: 'forward', position: {x: 380, y: 90}, rotation: 90},
-            it: 'maintains the same direction but rotates 90 degress',
-            expects: {
-              direction: 'forward',
-              rotation: 180
-            }
-          });
-
-          when('the player is to the right of the wall', {
-            setup: {direction: 'forward', position: {x: 30, y: 90}, rotation: 90},
-            it: 'maintains the same direction but rotates 90 degress',
-            expects: {
-              direction: 'forward',
-              rotation: 0
-            }
-          });
+    describe('and its a vertical wall', function () {
+      describe('and the player is parallel to the wall', function () {
+        when('the player is to the left of the wall', {
+          setup: {direction: 'forward', position: {x: 380, y: 90}, rotation: 90},
+          it: 'maintains the same direction but rotates 90 degress',
+          expects: {
+            direction: 'forward',
+            rotation: 180
+          }
         });
 
-        when('the player is tangential to the wall', {
-          setup: {direction: 'forward', position: {x: 360, y: 90}, rotation: 0},
-          it: 'maintains the same direction and rotation',
+        when('the player is to the right of the wall', {
+          setup: {direction: 'forward', position: {x: 30, y: 90}, rotation: 90},
+          it: 'maintains the same direction but rotates 90 degress',
           expects: {
             direction: 'forward',
             rotation: 0
           }
         });
+      });
+
+      when('the player is tangential to the wall', {
+        setup: {direction: 'forward', position: {x: 360, y: 90}, rotation: 0},
+        it: 'maintains the same direction and rotation',
+        expects: {
+          direction: 'forward',
+          rotation: 0
+        }
+      });
+
+      [
+        {coordinates: {x: 361, y: 226}, rotation: 352, expectations: {rotation: 172}},
+        {coordinates: {x: 390, y: 90}, rotation: 0, expectations: {rotation: 180}},
+        {coordinates: {x: 390, y: 90}, rotation: 180, expectations: {rotation: 180}},
+        {coordinates: {x: 39, y: 119}, rotation: 164, expectations: {rotation: 16}},
+        {coordinates: {x: 30, y: 90}, rotation: 180, expectations: {rotation: 0}},
+        {coordinates: {x: 30, y: 90}, rotation: 0, expectations: {rotation: 0}}
+      ].forEach((data) => {
+        when('the coordinates are ' + JSON.stringify(data.coordinates), {
+          setup: {direction: 'forward', position: data.coordinates, rotation: data.rotation},
+          it: 'turns 180 degrees and keeps the same direction',
+          expects: {
+            direction: 'forward',
+            rotation: data.expectations.rotation
+          }
+        });
+      });
+
+      when('and the player is moving away from the wall', {
+        setup: {direction: 'forward', position: {x: 390, y: 90}, rotation: 180},
+        it: 'maintains the same direction and rotation',
+        expects: {
+          direction: 'forward',
+          rotation: 180
+        }
+      });
+    });
+
+    describe('and its a horizontal wall', function () {
+      describe('and the player is parallel to the wall', function () {
+        when('and the player is above the wall', {
+          setup: {direction: 'forward', position: {x: 100, y: 30}, rotation: 0},
+          it: 'maintains the same direction but rotates 90 degrees',
+          expects: {
+            direction: 'forward',
+            rotation: 90
+          }
+        });
+
+        when('and the player is below the wall', {
+          setup: {direction: 'forward', position: {x: 100, y: 380}, rotation: 0},
+          it: 'maintains the same direction but rotates 90 degrees',
+          expects: {
+            direction: 'forward',
+            rotation: 270
+          }
+        });
+      });
+
+      describe('and the player is moving in direction to the wall', function () {
+        when('when the player is tangential to the wall', {
+          setup: {direction: 'forward', position: {x: 50, y: 360}, rotation: 90},
+          it: 'maintains the same direction and rotation',
+          expects: {
+            direction: 'forward',
+            rotation: 90
+          }
+        });
 
         [
-          {coordinates: {x: 361, y: 226}, rotation: 352, expectations: {rotation: 172}},
-          {coordinates: {x: 390, y: 90}, rotation: 0, expectations: {rotation: 180}},
-          {coordinates: {x: 390, y: 90}, rotation: 180, expectations: {rotation: 180}},
-          {coordinates: {x: 39, y: 119}, rotation: 164, expectations: {rotation: 16}},
-          {coordinates: {x: 30, y: 90}, rotation: 180, expectations: {rotation: 0}},
-          {coordinates: {x: 30, y: 90}, rotation: 0, expectations: {rotation: 0}}
+          {coordinates: {x: 50, y: 390}, rotation: 90, expectations: {rotation: 270}},
+          {coordinates: {x: 50, y: 390}, rotation: 270, expectations: {rotation: 270}},
+          {coordinates: {x: 50, y: 30}, rotation: 270, expectations: {rotation: 90}},
+          {coordinates: {x: 50, y: 30}, rotation: 90, expectations: {rotation: 90}}
         ].forEach((data) => {
           when('the coordinates are ' + JSON.stringify(data.coordinates), {
             setup: {direction: 'forward', position: data.coordinates, rotation: data.rotation},
-            it: 'turns 180 degrees and keeps the same direction',
+            it: 'maintains the same direction but turns 180 degrees',
             expects: {
               direction: 'forward',
               rotation: data.expectations.rotation
             }
           });
         });
-
-        when('and the player is moving away from the wall', {
-          setup: {direction: 'forward', position: {x: 390, y: 90}, rotation: 180},
-          it: 'maintains the same direction and rotation',
-          expects: {
-            direction: 'forward',
-            rotation: 180
-          }
-        });
       });
 
-      describe('and its a horizontal wall', function () {
-        describe('and the player is parallel to the wall', function () {
-          when('and the player is above the wall', {
-            setup: {direction: 'forward', position: {x: 100, y: 30}, rotation: 0},
-            it: 'maintains the same direction but rotates 90 degrees',
-            expects: {
-              direction: 'forward',
-              rotation: 90
-            }
-          });
-
-          when('and the player is below the wall', {
-            setup: {direction: 'forward', position: {x: 100, y: 380}, rotation: 0},
-            it: 'maintains the same direction but rotates 90 degrees',
-            expects: {
-              direction: 'forward',
-              rotation: 270
-            }
-          });
-        });
-
-        describe('and the player is moving in direction to the wall', function () {
-          when('when the player is tangential to the wall', {
-            setup: {direction: 'forward', position: {x: 50, y: 360}, rotation: 90},
-            it: 'maintains the same direction and rotation',
-            expects: {
-              direction: 'forward',
-              rotation: 90
-            }
-          });
-
-          [
-            {coordinates: {x: 50, y: 390}, rotation: 90, expectations: {rotation: 270}},
-            {coordinates: {x: 50, y: 390}, rotation: 270, expectations: {rotation: 270}},
-            {coordinates: {x: 50, y: 30}, rotation: 270, expectations: {rotation: 90}},
-            {coordinates: {x: 50, y: 30}, rotation: 90, expectations: {rotation: 90}}
-          ].forEach((data) => {
-            when('the coordinates are ' + JSON.stringify(data.coordinates), {
-              setup: {direction: 'forward', position: data.coordinates, rotation: data.rotation},
-              it: 'maintains the same direction but turns 180 degrees',
-              expects: {
-                direction: 'forward',
-                rotation: data.expectations.rotation
-              }
-            });
-          });
-        });
-
-        when('and the player is moving away from the wall', {
-          setup: {direction: 'forward', position: {x: 50, y: 360}, rotation: 270},
-          it: 'maintains the same direction and rotation',
-          expects: {
-            direction: 'forward',
-            rotation: 270
-          }
-        });
+      when('and the player is moving away from the wall', {
+        setup: {direction: 'forward', position: {x: 50, y: 360}, rotation: 270},
+        it: 'maintains the same direction and rotation',
+        expects: {
+          direction: 'forward',
+          rotation: 270
+        }
       });
     });
   });

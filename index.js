@@ -7,11 +7,16 @@ var _         = require('lodash');
 var yargs     = require('yargs');
 
 var Planner  = require('./lib/planner');
+var Oracle   = require('./lib/oracle');
+var Gunner   = require('./lib/gunner');
 
 var ws              = new WebSocket('ws://localhost:8080');
 var bot             = {};
+var gunner          = new Gunner();
 var argv            = yargs.demand(['i']).argv;
 var messagesLogPath = path.join(__dirname, argv.i + '-messages.log');
+var oracle;
+var lastMovementConfirmed = false;
 
 function move (ws, movement) {
   var data = {
@@ -27,32 +32,71 @@ function move (ws, movement) {
   ws.send(JSON.stringify(data));
 }
 
+function shoot (ws) {
+  var data = {
+    type: 'PlayerShootCommand',
+    data: {}
+  };
+
+  writeMessagesToFile('send', data);
+
+  ws.send(JSON.stringify(data));
+}
+
 function analyzeMessage (ws, message) {
   var data = message.data;
 
   switch (message.type) {
     case 'RadarScanNotification':
-      let movement = bot.planner.calculate(data);
+      if (lastMovementConfirmed) {
+        let action = oracle.decide(bot, data, bot.planner, gunner);
 
-      move(ws, movement);
+        if (action.type === 'move') {
+          move(ws, action.data);
+          lastMovementConfirmed = false;
+        }
+
+        if (action.type === 'shoot') {
+          shoot(ws);
+        }
+      }
+      //let movement = bot.planner.calculate(data);
+
+      //move(ws, movement);
 
       break;
     case 'RegisterPlayerAck':
       let coordinates = {x: data.x, y: data.y};
       let rotation = _.random(0, 360);
 
-      bot.planner = new Planner({direction: 'forward', position: coordinates, rotation: rotation});
+      bot.planner = new Planner({
+        tracker: argv.t,
+        direction: 'forward',
+        position: coordinates,
+        rotation: rotation
+      });
+
+      oracle = new Oracle({shooter: argv.s});
       break;
     case 'StartGameOrder':
-      move(ws, 'forward');
+      move(ws, {direction: 'forward', rotation: 0});
       break;
     case 'MovePlayerAck':
+      lastMovementConfirmed = true;
       bot.planner.locations.current = {x: data.x, y: data.y};
+      bot.location = {
+        coordinates: {x: data.x, y: data.y},
+        rotation: data.rotation
+      };
+
+      break;
+    case 'PlayerShootAck':
       break;
     default:
       var util = require('util');
       console.log(util.inspect(message, {showHidden: false, depth: null}));
       console.log('unexpected message');
+      lastMovementConfirmed = true; // reset
   }
 }
 
@@ -90,6 +134,11 @@ ws.on('open', function open () {
     writeMessagesToFile('recv', messages);
     analyzeMessages(ws, orderMessages(messages));
   });
+});
+
+ws.on('close', function close () {
+  console.log('Connection closed');
+  process.exit(0);
 });
 
 function truncateMessagesFile () {

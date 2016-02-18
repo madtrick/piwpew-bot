@@ -13,15 +13,15 @@ var expect   = chai.expect;
 describe('Gunner', function () {
   describe('#calculate', function () {
     [
-      {coordinates: {x: 200, y: 300}, expectation: 90},
-      {coordinates: {x: 100, y: 200}, expectation: 180},
-      {coordinates: {x: 200, y: 100}, expectation: 270}
+      {rotation: 0, coordinates: {x: 200, y: 300}, expectation: 90},
+      {rotation: 0, coordinates: {x: 100, y: 200}, expectation: 180},
+      {rotation: 0, coordinates: {x: 200, y: 100}, expectation: 270}
     ].forEach( (data) => {
-      describe('when the bot rotation is not valid to shoot', function () {
+      describe(`when the bot rotation (${data.rotation}) is not valid to shoot`, function () {
         beforeEach(function () {
           let player = {coordinates: data.coordinates};
 
-          this.location = {coordinates: {x: 200, y: 200}, rotation: 0};
+          this.location = {coordinates: {x: 200, y: 200}, rotation: data.rotation};
           this.scan = factory.RadarScanNotification({elements: [player]});
           this.gunner = new Gunner();
         });

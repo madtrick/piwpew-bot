@@ -15,7 +15,7 @@ var expect   = chai.expect;
 
 describe('Oracle', function () {
   beforeEach(function () {
-    this.oracle = new Oracle();
+    this.oracle = new Oracle({shooter: true});
   });
 
   describe('#decide', function () {
