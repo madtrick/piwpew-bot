@@ -3,6 +3,9 @@ import rotationToTarget from './utils/rotation-to-target'
 import { MovementDirection, Position, Rotation, ActionTypes, RadarScan } from './types'
 
 export interface IPlanner {
+  locations: {
+    current: Position
+  }
   calculate (scan: RadarScan): { type: ActionTypes.Move, data: { rotation: Rotation, direction: MovementDirection } }
 }
 

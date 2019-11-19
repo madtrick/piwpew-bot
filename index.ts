@@ -7,7 +7,7 @@ import Planner from './src/planner'
 import Oracle from './src/oracle'
 import Gunner from './src/gunner'
 import {
-  Position,
+  ActionTypes,
   Bot,
   MovementDirection,
   MessageTypes,
@@ -27,13 +27,13 @@ import {
 
 interface State {
   bot?: Bot
+  oracle?: Oracle
 }
 
 const ws = new WebSocket('ws://localhost:8080')
 const gunner = new Gunner()
 const argv = yargs.demand(['i']).argv
 const messagesLogPath = path.join(__dirname, argv.i + '-messages.log')
-let oracle
 let lastMovementConfirmed = false
 
 function move (ws: WebSocket, direction: MovementDirection): void {
@@ -93,7 +93,7 @@ function analyzeMessage (ws: WebSocket, message: any, state: State): State {
 
     state.bot = {
       planner: new Planner({
-        tracker: argv.t,
+        tracker: argv.t as boolean,
         direction: MovementDirection.Forward,
         position,
         rotation
@@ -102,14 +102,14 @@ function analyzeMessage (ws: WebSocket, message: any, state: State): State {
       rotation
     }
 
-    oracle = new Oracle({ shooter: argv.s })
+    state.oracle = new Oracle({ shooter: argv.s as boolean })
   }
 
   if (isMovePlayerResponseMessage(message)) {
     lastMovementConfirmed = true
     const { data: { position } } = message.component
-    state.bot.planner.locations.current = position
-    state.bot.location = position
+    state.bot!.planner.locations.current = position
+    state.bot!.location = position
   }
 
   if (isRotatePlayerResponseMessage(message)) {
@@ -118,14 +118,14 @@ function analyzeMessage (ws: WebSocket, message: any, state: State): State {
 
   if (isRadarScanNotificationMessage(message)) {
     if (lastMovementConfirmed) {
-      const action = oracle.decide(state.bot, data, state.bot.planner, gunner)
+      const action = state.oracle!.decide(state.bot!, data, state.bot!.planner, gunner)
 
-      if (action.type === 'move') {
-        move(ws, action.data)
+      if (action.type === ActionTypes.Move) {
+        move(ws, action.data.direction)
         lastMovementConfirmed = false
       }
 
-      if (action.type === 'shoot') {
+      if (action.type === ActionTypes.Shoot) {
         shoot(ws)
       }
     }
@@ -172,12 +172,12 @@ ws.on('open', function open (): void {
 
   ws.send(JSON.stringify({ type: 'RegisterPlayerCommand', data: { id: Date.now() } }), { mask: true })
 
-  const state: State = {}
+  let state: State = {}
   ws.on('message', function handleMessage (json: string): void {
     const messages = JSON.parse(json)
 
     writeMessagesToFile('recv', messages)
-    analyzeMessages(ws, orderMessages(messages), state)
+    state = analyzeMessages(ws, orderMessages(messages), state)
   })
 })
 
