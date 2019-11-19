@@ -6,7 +6,7 @@ export interface IPlanner {
   locations: {
     current: Position
   }
-  calculate (scan: RadarScan): { type: ActionTypes.Move, data: { rotation: Rotation, direction: MovementDirection } }
+  calculate (scan: RadarScan): { type: ActionTypes.Rotate, data: { rotation: Rotation } }
 }
 
 export default class Planner implements IPlanner {
@@ -31,9 +31,8 @@ export default class Planner implements IPlanner {
     this.locations = { current: _.clone(options.position) }
   }
 
-  calculate (scan: RadarScan): { type: ActionTypes.Move, data: { rotation: Rotation, direction: MovementDirection } } {
-    let movement = {
-      direction: this.movements.last.direction,
+  calculate (scan: RadarScan): { type: ActionTypes.Rotate, data: { rotation: Rotation } } {
+    const movement = {
       rotation: this.movements.last.rotation
     }
 
@@ -49,17 +48,16 @@ export default class Planner implements IPlanner {
     this.movements.last = movement
 
     return {
-      type: ActionTypes.Move,
+      type: ActionTypes.Rotate,
       data: movement
     }
   }
 
   private escapePlayer (elements: { position: Position }[]): Rotation {
-    let player = elements[0]
-    let rotationToPlayer = rotationToTarget(this.locations.current, player.position)
-    let oppositeRotation = rotationToPlayer + _.random(0, 180)
+    const player = elements[0]
+    const rotationToPlayer = rotationToTarget(this.locations.current, player.position)
 
-    return oppositeRotation % 360
+    return (rotationToPlayer + 180) % 360
   }
 
   private trackPlayer (elements: { position: Position }[]): Rotation {
