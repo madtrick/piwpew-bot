@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "outDir": "./built",
+    "allowJs": false,
+    "target": "es2017",
+    "module": "commonjs",
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "inlineSources": true,
+    "strict": true,
+    "pretty": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "lib": ["es2015", "es2016", "es2017", "esnext"],
+    "typeRoots": ["./typings", "./node_modules/@types"]
+  },
+  "include": ["./src/**/*", "./test/**/*"]
+}

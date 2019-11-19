@@ -1,0 +1,8 @@
+{
+  "extends": ["../tslint.json"],
+  "rules": {
+    "mocha-avoid-only": "error",
+    "typedef": false,
+    "no-unused-expression": false
+  }
+}
