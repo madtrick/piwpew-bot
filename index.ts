@@ -9,6 +9,7 @@ import Gunner from './src/gunner'
 import {
   ActionTypes,
   Bot,
+  Rotation,
   MovementDirection,
   MessageTypes,
   NotificationTypes,
@@ -18,6 +19,7 @@ import {
   RegisterPlayerResponseMessage,
   MovePlayerRequestMessage,
   MovePlayerResponseMessage,
+  RotatePlayerRequestMessage,
   RotatePlayerResponseMessage,
   RadarScanNotificationMessage,
   ShootRequestMessage,
@@ -47,6 +49,22 @@ function move (ws: WebSocket, direction: MovementDirection): void {
       movement: {
         direction: direction
       }
+    }
+  }
+
+  writeMessagesToFile('send', data)
+
+  ws.send(JSON.stringify(data))
+}
+
+function rotate (ws: WebSocket, rotation: Rotation): void {
+  const data: RotatePlayerRequestMessage = {
+    sys: {
+      type: MessageTypes.Request,
+      id: RequestTypes.RotatePlayer
+    },
+    data: {
+      rotation
     }
   }
 
@@ -128,6 +146,10 @@ function analyzeMessage (ws: WebSocket, message: any, state: State): State {
       if (action.type === ActionTypes.Move) {
         move(ws, action.data.direction)
         lastMovementConfirmed = false
+      }
+
+      if (action.type === ActionTypes.Rotate) {
+        rotate(ws, action.data.rotation)
       }
 
       if (action.type === ActionTypes.Shoot) {

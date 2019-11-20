@@ -8,6 +8,7 @@ export enum MessageTypes {
 
 export enum RequestTypes {
   MovePlayer = 'MovePlayer',
+  RotatePlayer = 'RotatePlayer',
   Shoot = 'Shoot'
 }
 
@@ -63,6 +64,16 @@ export interface MovePlayerResponseMessage {
       id: string
       position: Position
     }
+  }
+}
+
+export interface RotatePlayerRequestMessage {
+  sys: {
+    type: MessageTypes.Request
+    id: RequestTypes.RotatePlayer
+  }
+  data: {
+    rotation: number
   }
 }
 
