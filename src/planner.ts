@@ -1,56 +1,125 @@
 import * as _ from 'lodash'
 import rotationToTarget from './utils/rotation-to-target'
-import { MovementDirection, Position, Rotation, ActionTypes, RadarScan } from './types'
+import {
+  MovementDirection,
+  Position,
+  Rotation,
+  ActionTypes,
+  RotateAction,
+  MoveAction,
+  RadarScan
+} from './types'
+import { PLAYER_RADIUS } from './constants'
+
+const GAP_TO_ARENA_BORDERS = PLAYER_RADIUS * 2
 
 export interface IPlanner {
   locations: {
     current: Position
   }
-  calculate (scan: RadarScan): { type: ActionTypes.Rotate, data: { rotation: Rotation } }
+  calculate (scan: RadarScan): RotateAction | MoveAction
 }
 
 export default class Planner implements IPlanner {
   private readonly isTracker: boolean
-  private movements: any
+  private arena: { width: number, height: number }
   public locations: any
 
   constructor (options: {
     tracker: boolean,
     direction: MovementDirection,
     rotation: Rotation,
-    position: Position
+    position: Position,
+    arena: {
+      width: number,
+      height: number
+    }
   }) {
     this.isTracker = options.tracker
-    this.movements = {
-      last: {
-        direction: options.direction,
-        rotation: options.rotation
-      }
-    }
-
+    this.arena = options.arena
     this.locations = { current: _.clone(options.position) }
   }
 
-  calculate (scan: RadarScan): { type: ActionTypes.Rotate, data: { rotation: Rotation } } {
-    const movement = {
-      rotation: this.movements.last.rotation
+  calculate (scan: RadarScan): RotateAction | MoveAction {
+    if ((this.locations.current.x + PLAYER_RADIUS) > (this.arena.width - GAP_TO_ARENA_BORDERS)) {
+      const rotation = _.random(120, 240)
+
+      return {
+        type: ActionTypes.Rotate,
+        data: {
+          rotation
+        }
+      }
     }
 
-    // TODO removed the code that was expecting a "walls" item
-    // in the radar scan. I'll have to figure out another way to
-    // avoid walls
+    if (this.locations.current.x - PLAYER_RADIUS < GAP_TO_ARENA_BORDERS) {
+      /*
+       * Add 60 to 360 so we can use the _.random function
+       * to calculate the angle in just one go. Get the reminder
+       * to return a value between 0 and 60
+       */
+      const rotation = _.random(330, 420) % 360
+
+      return {
+        type: ActionTypes.Rotate,
+        data: {
+          rotation
+        }
+      }
+    }
+
+    if ((this.locations.current.y + PLAYER_RADIUS) > (this.arena.height - GAP_TO_ARENA_BORDERS)) {
+      const rotation = _.random(240, 330)
+
+      return {
+        type: ActionTypes.Rotate,
+        data: {
+          rotation
+        }
+      }
+    }
+
+    if ((this.locations.current.y - PLAYER_RADIUS) < GAP_TO_ARENA_BORDERS) {
+      const rotation = _.random(30, 150)
+
+      return {
+        type: ActionTypes.Rotate,
+        data: {
+          rotation
+        }
+      }
+    }
+
+    if (scan.players.length === 0) {
+      return {
+        type: ActionTypes.Move,
+        data: {
+          direction: MovementDirection.Forward
+        }
+      }
+    }
+
     if (this.isTracker && !_.isEmpty(scan.players)) {
-      movement.rotation = this.trackPlayer(scan.players)
+      const rotation = this.trackPlayer(scan.players)
+
+      return {
+        type: ActionTypes.Rotate,
+        data: {
+          rotation
+        }
+      }
     } else if (!this.isTracker && !_.isEmpty(scan.players)) {
-      movement.rotation = this.escapePlayer(scan.players)
+      const rotation = this.escapePlayer(scan.players)
+
+      return {
+        type: ActionTypes.Rotate,
+        data: {
+          rotation
+        }
+      }
     }
 
-    this.movements.last = movement
-
-    return {
-      type: ActionTypes.Rotate,
-      data: movement
-    }
+    throw new Error('This should not be possible')
   }
 
   private escapePlayer (elements: { position: Position }[]): Rotation {

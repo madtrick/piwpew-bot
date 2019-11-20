@@ -121,3 +121,17 @@ export interface Bot {
   location: Position
   rotation: Rotation
 }
+
+export interface RotateAction {
+  type: ActionTypes.Rotate
+  data: {
+    rotation: Rotation
+  }
+}
+
+export interface MoveAction {
+  type: ActionTypes.Move,
+  data: {
+    direction: MovementDirection
+  }
+}

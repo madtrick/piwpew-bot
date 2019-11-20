@@ -23,6 +23,7 @@ import {
   ShootRequestMessage,
   StartGameNofiticationMessage
 } from './src/types'
+import { ARENA_HEIGHT, ARENA_WIDTH } from './src/constants'
 
 
 interface State {
@@ -96,7 +97,11 @@ function analyzeMessage (ws: WebSocket, message: any, state: State): State {
         tracker: argv.t as boolean,
         direction: MovementDirection.Forward,
         position,
-        rotation
+        rotation,
+        arena: {
+          width: ARENA_WIDTH,
+          height: ARENA_HEIGHT
+        }
       }),
       location: position,
       rotation

@@ -11,7 +11,7 @@ export default class Oracle {
 
   decide (bot: Bot, scan: RadarScan, planner: IPlanner, gunner: Gunner):
     { type: ActionTypes.Rotate, data: { rotation: Rotation } } |
-    { type: ActionTypes.Move, data: { direction: MovementDirection, rotation: Rotation } } |
+    { type: ActionTypes.Move, data: { direction: MovementDirection } } |
     { type: ActionTypes.Shoot } {
     if (!this.isShooter || scan.players.length === 0) {
       return planner.calculate(scan)
