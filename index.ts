@@ -16,6 +16,7 @@ import {
   ResponseTypes,
   RequestTypes,
   Message,
+  RegisterPlayerRequestMessage,
   RegisterPlayerResponseMessage,
   MovePlayerRequestMessage,
   MovePlayerResponseMessage,
@@ -75,8 +76,10 @@ function rotate (ws: WebSocket, rotation: Rotation): void {
 
 function shoot (ws: WebSocket): void {
   const data: ShootRequestMessage = {
-    type: MessageTypes.Request,
-    id: RequestTypes.Shoot
+    sys: {
+      type: MessageTypes.Request,
+      id: RequestTypes.Shoot
+    }
   }
 
   writeMessagesToFile('send', data)
@@ -85,30 +88,40 @@ function shoot (ws: WebSocket): void {
 }
 
 function isRegisterPlayerResponseMessage (message: any): message is RegisterPlayerResponseMessage {
-  return message.type === MessageTypes.Response && message.id === ResponseTypes.RegisterPlayer
+  const { sys: { type, id } } = message
+
+  return type === MessageTypes.Response && id === ResponseTypes.RegisterPlayer
 }
 
 function isMovePlayerResponseMessage (message: any): message is MovePlayerResponseMessage {
-  return message.type === MessageTypes.Response && message.id === ResponseTypes.MovePlayer
+  const { sys: { type, id } } = message
+
+  return type === MessageTypes.Response && id === ResponseTypes.MovePlayer
 }
 
 function isRotatePlayerResponseMessage (message: any): message is RotatePlayerResponseMessage {
-  return message.type === MessageTypes.Response && message.id === 'ComponentUpdate'
+  const { sys: { type, id } } = message
+
+  return type === MessageTypes.Response && id === 'ComponentUpdate'
 }
 
 function isRadarScanNotificationMessage (message: any): message is RadarScanNotificationMessage {
-  return message.type === MessageTypes.Notification && message.id === NotificationTypes.RadarScan
+  const { sys: { type, id } } = message
+
+  return type === MessageTypes.Notification && id === NotificationTypes.RadarScan
 }
 
 function isStartGameNotificationMessage (message: any): message is StartGameNofiticationMessage {
-  return message.type === MessageTypes.Notification && message.id === NotificationTypes.StartGame
+  const { sys: { type, id } } = message
+
+  return type === MessageTypes.Notification && id === NotificationTypes.StartGame
 }
 
 function analyzeMessage (ws: WebSocket, message: any, state: State): State {
   const data = message.data
 
   if (isRegisterPlayerResponseMessage(message)) {
-    const { data: { position, rotation } } = message.component
+    const { position, rotation } = message.details
 
     state.bot = {
       planner: new Planner({
@@ -130,7 +143,7 @@ function analyzeMessage (ws: WebSocket, message: any, state: State): State {
 
   if (isMovePlayerResponseMessage(message)) {
     lastMovementConfirmed = true
-    const { data: { position } } = message.component
+    const { position } = message.details
     state.bot!.planner.locations.current = position
     state.bot!.location = position
   }
@@ -197,7 +210,17 @@ function analyzeMessages (ws: WebSocket, messages: Message[], state: State): Sta
 ws.on('open', function open (): void {
   truncateMessagesFile()
 
-  ws.send(JSON.stringify({ type: 'RegisterPlayerCommand', data: { id: Date.now() } }), { mask: true })
+  const message: RegisterPlayerRequestMessage = {
+    sys: {
+      type: MessageTypes.Request,
+      id: RequestTypes.RegisterPlayer
+    },
+    data: {
+      id: `${Date.now()}`
+    }
+  }
+
+  ws.send(JSON.stringify(message), { mask: true })
 
   let state: State = {}
   ws.on('message', function handleMessage (json: string): void {

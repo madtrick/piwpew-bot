@@ -7,6 +7,7 @@ export enum MessageTypes {
 }
 
 export enum RequestTypes {
+  RegisterPlayer = 'RegisterPlayer',
   MovePlayer = 'MovePlayer',
   RotatePlayer = 'RotatePlayer',
   Shoot = 'Shoot'
@@ -32,15 +33,26 @@ export interface Message {
   type: string
 }
 
+export interface RegisterPlayerRequestMessage {
+  sys: {
+    type: MessageTypes.Request,
+    id: RequestTypes.RegisterPlayer
+  }
+  data: {
+    id: string
+  }
+}
+
 export interface RegisterPlayerResponseMessage {
-  type: MessageTypes.Response
-  id: ResponseTypes.RegisterPlayer
-  component: {
-    data: {
-      id: string
-      position: Position
-      rotation: number
-    }
+  sys: {
+    type: MessageTypes.Response
+    id: ResponseTypes.RegisterPlayer
+  }
+  success: boolean
+  details: {
+    id: string
+    position: Position
+    rotation: number
   }
 }
 
@@ -57,13 +69,13 @@ export interface MovePlayerRequestMessage {
 }
 
 export interface MovePlayerResponseMessage {
-  type: MessageTypes.Response
-  id: ResponseTypes.MovePlayer
-  component: {
-    data: {
-      id: string
-      position: Position
-    }
+  sys: {
+    type: MessageTypes.Response
+    id: ResponseTypes.MovePlayer
+  }
+  success: boolean
+  details: {
+    position: Position
   }
 }
 
@@ -78,19 +90,18 @@ export interface RotatePlayerRequestMessage {
 }
 
 export interface RotatePlayerResponseMessage {
-  type: MessageTypes.Response
-  id: 'ComponentUpdate'
-  component: {
-    data: {
-      id: string
-      rotation: number
-    }
+  sys: {
+    type: MessageTypes.Response
+    id: 'ComponentUpdate'
   }
+  success: boolean
 }
 
 export interface RadarScanNotificationMessage {
-  type: MessageTypes.Notification
-  id: NotificationTypes.RadarScan
+  sys: {
+    type: MessageTypes.Notification
+    id: NotificationTypes.RadarScan
+  }
   data: {
     players: { position: Position }[]
     unknown: { position: Position }[]
@@ -99,15 +110,18 @@ export interface RadarScanNotificationMessage {
 }
 
 export interface ShootRequestMessage {
-  type: MessageTypes.Request
-  id: RequestTypes.Shoot
+  sys: {
+    type: MessageTypes.Request
+    id: RequestTypes.Shoot
+  }
 }
 
 export interface StartGameNofiticationMessage {
-  type: MessageTypes.Notification
-  id: NotificationTypes.StartGame
+  sys: {
+    type: MessageTypes.Notification
+    id: NotificationTypes.StartGame
+  }
 }
-
 
 export interface RadarScan {
   players: { position: Position }[]

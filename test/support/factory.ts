@@ -5,8 +5,10 @@ export default {
     let { players } = options || { players: [] }
 
     return {
-      type: MessageTypes.Notification,
-      id: NotificationTypes.RadarScan,
+      sys: {
+        type: MessageTypes.Notification,
+        id: NotificationTypes.RadarScan
+      },
       data: {
         shots: [],
         players,
