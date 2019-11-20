@@ -2,7 +2,8 @@ import sinon from 'sinon'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
 
-import { RadarScanNotificationMessage, Position } from '../src/types'
+import { DISTANCE_THRESHOLD_TRIGGER_PLANNER } from '../src/constants'
+import { RadarScanNotificationMessage, Bot } from '../src/types'
 import Oracle from '../src/oracle'
 import { IPlanner } from '../src/planner'
 import Gunner from '../src/gunner'
@@ -14,15 +15,17 @@ const expect = chai.expect
 
 describe('Oracle', function () {
   let oracle: Oracle
-  let position: Position
+  let bot: Bot
   let planner: IPlanner
   let gunner: Gunner
 
   beforeEach(function () {
-    position = { x: 230, y: 200 }
-    planner = { calculate: sinon.spy(), locations: { current: position } }
+    const botPosition = { x: 200, y: 200 }
+
+    planner = { calculate: sinon.spy(), locations: { current: botPosition } }
     gunner = { calculate: sinon.spy() }
     oracle = new Oracle({ shooter: true })
+    bot = { location: botPosition, rotation: 0, planner }
   })
 
   describe('#decide', function () {
@@ -30,8 +33,7 @@ describe('Oracle', function () {
       let scanMessage: RadarScanNotificationMessage
 
       beforeEach(function () {
-        const bot = { rotation: 0, location: { x: 200, y: 200 }, planner }
-        const scanMessage = factory.RadarScanNotification()
+        scanMessage = factory.RadarScanNotification()
 
         oracle.decide(bot, scanMessage.data, planner, gunner)
       })
@@ -42,14 +44,12 @@ describe('Oracle', function () {
     })
 
     describe('when there are players on the scan notification', function () {
-      describe('when they are further than 20 units of the player center', function () {
+      describe(`when they are further than ${DISTANCE_THRESHOLD_TRIGGER_PLANNER} units of the player center`,
+      function () {
         let scanMessage: RadarScanNotificationMessage
-        let planner: IPlanner
-        let gunner: Gunner
 
         beforeEach(function () {
-          const player = { position }
-          const bot = { location: { x: 200, y: 200 }, rotation: 0, planner }
+          const player = { position: { x: bot.location.x + DISTANCE_THRESHOLD_TRIGGER_PLANNER, y: 200 } }
 
           scanMessage = factory.RadarScanNotification({ players: [player] })
           oracle.decide(bot, scanMessage.data, planner, gunner)
@@ -60,21 +60,19 @@ describe('Oracle', function () {
         })
       })
 
-      describe('when they are closer or equal to 20 units of the player center', function () {
+      describe(`when they are less than or equal to ${DISTANCE_THRESHOLD_TRIGGER_PLANNER} units of the player center`,
+      function () {
         let scanMessage: RadarScanNotificationMessage
-        let planner: IPlanner
-        let gunner: Gunner
 
         beforeEach(function () {
-          const player = { position }
-          const bot = { location: { x: 200, y: 200 }, rotation: 0, planner }
+          const player = { position: { x: bot.location.x + DISTANCE_THRESHOLD_TRIGGER_PLANNER - 10, y: 200 } }
 
           scanMessage = factory.RadarScanNotification({ players: [player] })
           oracle.decide(bot, scanMessage.data, planner, gunner)
         })
 
         it('calls the Planner', function () {
-          expect(this.gunner.calculate).to.have.been.calledWith(this.location, this.scan.data)
+          expect(gunner.calculate).to.have.been.calledWith(bot.rotation, bot.location, scanMessage.data)
         })
       })
     })

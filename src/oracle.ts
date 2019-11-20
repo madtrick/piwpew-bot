@@ -1,3 +1,4 @@
+import { DISTANCE_THRESHOLD_TRIGGER_PLANNER } from './constants'
 import { RadarScan, Bot, ActionTypes, MovementDirection, Rotation } from './types'
 import Gunner from './gunner'
 import { IPlanner } from './planner'
@@ -24,9 +25,9 @@ export default class Oracle {
         Math.pow(Math.abs(y - by), 2)
       )
 
-      console.log('distance to player', distance)
+      console.log('distance to player', distance, planner)
 
-      if (distance > 35) {
+      if (distance >= DISTANCE_THRESHOLD_TRIGGER_PLANNER) {
         return planner.calculate(scan)
       } else {
         return gunner.calculate(bot.rotation, bot.location, scan)
