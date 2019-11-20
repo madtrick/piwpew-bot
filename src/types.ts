@@ -130,8 +130,12 @@ export interface RotateAction {
 }
 
 export interface MoveAction {
-  type: ActionTypes.Move,
+  type: ActionTypes.Move
   data: {
     direction: MovementDirection
   }
+}
+
+export interface ShootAction {
+  type: ActionTypes.Shoot
 }

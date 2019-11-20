@@ -1,12 +1,10 @@
 import rotationToTarget from './utils/rotation-to-target'
-import { ActionTypes, Position, Rotation, RadarScan } from './types'
+import { ActionTypes, Position, Rotation, RadarScan, ShootAction, RotateAction } from './types'
 
 const delta = 18
 
 export default class Gunner {
-  calculate (rotation: Rotation, position: Position, scan: RadarScan):
-    { type: ActionTypes.Shoot } |
-    { type: ActionTypes.Rotate, data: { rotation: number } } {
+  calculate (rotation: Rotation, position: Position, scan: RadarScan): ShootAction | RotateAction {
     const player = scan.players[0]
     const rotationToPlayer = rotationToTarget(position, player.position)
 

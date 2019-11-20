@@ -1,12 +1,13 @@
 import chai from 'chai'
 
+import { RotateAction, ShootAction, ActionTypes } from '../src/types'
 import Gunner from '../src/gunner'
-import factory from './support/factory'
-
 
 const expect = chai.expect
 
 describe('Gunner', function () {
+  const gunner = new Gunner()
+
   describe('#calculate', function () {
     [
       { rotation: 0, coordinates: { x: 200, y: 300 }, expectation: 90 },
@@ -14,18 +15,13 @@ describe('Gunner', function () {
       { rotation: 0, coordinates: { x: 200, y: 100 }, expectation: 270 }
     ].forEach((data) => {
       describe(`when the bot rotation (${data.rotation}) is not valid to shoot`, function () {
-        beforeEach(function () {
-          const player = { position: data.coordinates }
-
-          this.location = { coordinates: { x: 200, y: 200 }, rotation: data.rotation }
-          this.scan = factory.RadarScanNotification({ players: [player] })
-          this.gunner = new Gunner()
-        })
-
         it('returns a move order to rotate the player', function () {
-          let action = this.gunner.calculate(this.location, this.scan.data)
+          const playerScan = { position: data.coordinates }
+          const location = { x: 200, y: 200 }
+          const rotation = data.rotation
+          const action = gunner.calculate(rotation, location, { players: [playerScan] }) as RotateAction
 
-          expect(action.type).to.equal('move')
+          expect(action.type).to.equal(ActionTypes.Rotate)
           expect(action.data.rotation).to.equal(data.expectation)
         })
       })
@@ -42,18 +38,13 @@ describe('Gunner', function () {
         `when the player is at x: , ${data.coordinates.x}  y: ${data.coordinates.y}`,
         function () {
           describe('when the bot rotation differs by less than a delta offset', function () {
-            beforeEach(function () {
-              const player = { position: data.coordinates }
-
-              this.location = { coordinates: { x: 200, y: 200 }, rotation: 0 }
-              this.scan = factory.RadarScanNotification({ players: [player] })
-              this.gunner = new Gunner()
-            })
-
             it('returns a shoot action', function () {
-              let action = this.gunner.calculate(this.location, this.scan.data)
+              const playerScan = { position: data.coordinates }
+              const location = { x: 200, y: 200 }
+              const rotation = 0
+              const action = gunner.calculate(rotation, location, { players: [playerScan] }) as ShootAction
 
-              expect(action.type).to.equal('shoot')
+              expect(action.type).to.equal(ActionTypes.Shoot)
             })
           })
         })
