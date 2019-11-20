@@ -29,10 +29,6 @@ export interface Position {
   y: number
 }
 
-export interface Message {
-  type: string
-}
-
 export interface RegisterPlayerRequestMessage {
   sys: {
     type: MessageTypes.Request,

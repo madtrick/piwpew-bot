@@ -15,7 +15,6 @@ import {
   NotificationTypes,
   ResponseTypes,
   RequestTypes,
-  Message,
   RegisterPlayerRequestMessage,
   RegisterPlayerResponseMessage,
   MovePlayerRequestMessage,
@@ -34,7 +33,7 @@ interface State {
   oracle?: Oracle
 }
 
-const ws = new WebSocket('ws://localhost:8080')
+const ws = new WebSocket('ws://localhost:8889')
 const gunner = new Gunner()
 const argv = yargs.demand(['i']).argv
 const messagesLogPath = path.join(__dirname, argv.i + '-messages.log')
@@ -182,31 +181,6 @@ function analyzeMessage (ws: WebSocket, message: any, state: State): State {
   return state
 }
 
-function orderMessages (messages: Message[]): Message[] {
-  const order = ['MovePlayerAck', 'RadarScanNotification']
-
-  return messages.sort((messageA, messageB) => {
-    const indexA = order.indexOf(messageA.type)
-    const indexB = order.indexOf(messageB.type)
-
-    if (indexA && indexB) {
-      return indexA - indexB
-    }
-
-    if (indexA || indexB) {
-      return -1
-    }
-
-    return 0
-  })
-}
-
-function analyzeMessages (ws: WebSocket, messages: Message[], state: State): State {
-  return messages.reduce((s, message) => {
-    return analyzeMessage(ws, message, s)
-  }, state)
-}
-
 ws.on('open', function open (): void {
   truncateMessagesFile()
 
@@ -224,10 +198,10 @@ ws.on('open', function open (): void {
 
   let state: State = {}
   ws.on('message', function handleMessage (json: string): void {
-    const messages = JSON.parse(json)
+    const message = JSON.parse(json)
 
-    writeMessagesToFile('recv', messages)
-    state = analyzeMessages(ws, orderMessages(messages), state)
+    writeMessagesToFile('recv', message)
+    state = analyzeMessage(ws, message, state)
   })
 })
 
