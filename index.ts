@@ -41,10 +41,8 @@ let lastMovementConfirmed = false
 
 function move (ws: WebSocket, direction: MovementDirection): void {
   const data: MovePlayerRequestMessage = {
-    sys: {
-      type: MessageTypes.Request,
-      id: RequestTypes.MovePlayer
-    },
+    type: MessageTypes.Request,
+    id: RequestTypes.MovePlayer,
     data: {
       movement: {
         direction: direction
@@ -59,10 +57,8 @@ function move (ws: WebSocket, direction: MovementDirection): void {
 
 function rotate (ws: WebSocket, rotation: Rotation): void {
   const data: RotatePlayerRequestMessage = {
-    sys: {
-      type: MessageTypes.Request,
-      id: RequestTypes.RotatePlayer
-    },
+    type: MessageTypes.Request,
+    id: RequestTypes.RotatePlayer,
     data: {
       rotation
     }
@@ -75,10 +71,8 @@ function rotate (ws: WebSocket, rotation: Rotation): void {
 
 function shoot (ws: WebSocket): void {
   const data: ShootRequestMessage = {
-    sys: {
-      type: MessageTypes.Request,
-      id: RequestTypes.Shoot
-    }
+    type: MessageTypes.Request,
+    id: RequestTypes.Shoot
   }
 
   writeMessagesToFile('send', data)
@@ -87,31 +81,32 @@ function shoot (ws: WebSocket): void {
 }
 
 function isRegisterPlayerResponseMessage (message: any): message is RegisterPlayerResponseMessage {
-  const { sys: { type, id } } = message
+  console.log(message)
+  const { type, id } = message
 
   return type === MessageTypes.Response && id === ResponseTypes.RegisterPlayer
 }
 
 function isMovePlayerResponseMessage (message: any): message is MovePlayerResponseMessage {
-  const { sys: { type, id } } = message
+  const { type, id } = message
 
   return type === MessageTypes.Response && id === ResponseTypes.MovePlayer
 }
 
 function isRotatePlayerResponseMessage (message: any): message is RotatePlayerResponseMessage {
-  const { sys: { type, id } } = message
+  const { type, id } = message
 
   return type === MessageTypes.Response && id === 'ComponentUpdate'
 }
 
 function isRadarScanNotificationMessage (message: any): message is RadarScanNotificationMessage {
-  const { sys: { type, id } } = message
+  const { type, id } = message
 
   return type === MessageTypes.Notification && id === NotificationTypes.RadarScan
 }
 
 function isStartGameNotificationMessage (message: any): message is StartGameNofiticationMessage {
-  const { sys: { type, id } } = message
+  const { type, id } = message
 
   return type === MessageTypes.Notification && id === NotificationTypes.StartGame
 }
@@ -120,35 +115,44 @@ function analyzeMessage (ws: WebSocket, message: any, state: State): State {
   const data = message.data
 
   if (isRegisterPlayerResponseMessage(message)) {
-    const { position, rotation } = message.details
+    if (message.success && message.details) {
+      const { position, rotation } = message.details
 
-    state.bot = {
-      planner: new Planner({
-        tracker: argv.t as boolean,
-        direction: MovementDirection.Forward,
-        position,
-        rotation,
-        arena: {
-          width: ARENA_WIDTH,
-          height: ARENA_HEIGHT
-        }
-      }),
-      location: position,
-      rotation
+      state.bot = {
+        planner: new Planner({
+          tracker: argv.t as boolean,
+          direction: MovementDirection.Forward,
+          position,
+          rotation,
+          arena: {
+            width: ARENA_WIDTH,
+            height: ARENA_HEIGHT
+          }
+        }),
+        location: position,
+        rotation
+      }
+
+      state.oracle = new Oracle({ shooter: argv.s as boolean })
     }
 
-    state.oracle = new Oracle({ shooter: argv.s as boolean })
+    return state
   }
 
   if (isMovePlayerResponseMessage(message)) {
-    lastMovementConfirmed = true
-    const { position } = message.details
-    state.bot!.planner.locations.current = position
-    state.bot!.location = position
+    if (message.success && message.details) {
+      lastMovementConfirmed = true
+      const { position } = message.details
+      state.bot!.planner.locations.current = position
+      state.bot!.location = position
+    }
+
+    return state
   }
 
   if (isRotatePlayerResponseMessage(message)) {
     // TODO
+    return state
   }
 
   if (isRadarScanNotificationMessage(message)) {
@@ -168,10 +172,14 @@ function analyzeMessage (ws: WebSocket, message: any, state: State): State {
         shoot(ws)
       }
     }
+
+    return state
   }
 
   if (isStartGameNotificationMessage(message)) {
     move(ws, MovementDirection.Forward)
+
+    return state
   }
 
   console.log('unexpected message')
@@ -185,10 +193,8 @@ ws.on('open', function open (): void {
   truncateMessagesFile()
 
   const message: RegisterPlayerRequestMessage = {
-    sys: {
-      type: MessageTypes.Request,
-      id: RequestTypes.RegisterPlayer
-    },
+    type: MessageTypes.Request,
+    id: RequestTypes.RegisterPlayer,
     data: {
       id: `${Date.now()}`
     }

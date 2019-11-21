@@ -2,26 +2,26 @@ import { IPlanner } from './planner'
 
 export enum MessageTypes {
   Request = 'Request',
-  Response = 'Response',
-  Notification = 'Notification'
+    Response = 'Response',
+    Notification = 'Notification'
 }
 
 export enum RequestTypes {
   RegisterPlayer = 'RegisterPlayer',
-  MovePlayer = 'MovePlayer',
-  RotatePlayer = 'RotatePlayer',
-  Shoot = 'Shoot'
+    MovePlayer = 'MovePlayer',
+    RotatePlayer = 'RotatePlayer',
+    Shoot = 'Shoot'
 }
 
 export enum ResponseTypes {
   RegisterPlayer = 'RegisterPlayer',
-  MovePlayer = 'MovePlayer',
-  RotatePlayer = 'RotatePlayer'
+    MovePlayer = 'MovePlayer',
+    RotatePlayer = 'RotatePlayer'
 }
 
 export enum NotificationTypes {
   RadarScan = 'RadarScan',
-  StartGame = 'StartGame'
+    StartGame = 'StartGame'
 }
 
 export interface Position {
@@ -30,22 +30,18 @@ export interface Position {
 }
 
 export interface RegisterPlayerRequestMessage {
-  sys: {
-    type: MessageTypes.Request,
-    id: RequestTypes.RegisterPlayer
-  }
+  type: MessageTypes.Request,
+  id: RequestTypes.RegisterPlayer
   data: {
     id: string
   }
 }
 
 export interface RegisterPlayerResponseMessage {
-  sys: {
-    type: MessageTypes.Response
-    id: ResponseTypes.RegisterPlayer
-  }
+  type: MessageTypes.Response
+  id: ResponseTypes.RegisterPlayer
   success: boolean
-  details: {
+  details?: {
     id: string
     position: Position
     rotation: number
@@ -53,10 +49,8 @@ export interface RegisterPlayerResponseMessage {
 }
 
 export interface MovePlayerRequestMessage {
-  sys: {
-    type: MessageTypes.Request
-    id: RequestTypes.MovePlayer
-  }
+  type: MessageTypes.Request
+  id: RequestTypes.MovePlayer
   data: {
     movement: {
       direction: MovementDirection
@@ -64,40 +58,33 @@ export interface MovePlayerRequestMessage {
   }
 }
 
-export interface MovePlayerResponseMessage {
-  sys: {
-    type: MessageTypes.Response
-    id: ResponseTypes.MovePlayer
-  }
-  success: boolean
-  details: {
-    position: Position
-  }
-}
-
 export interface RotatePlayerRequestMessage {
-  sys: {
-    type: MessageTypes.Request
-    id: RequestTypes.RotatePlayer
-  }
+  type: MessageTypes.Request
+  id: RequestTypes.RotatePlayer
   data: {
     rotation: number
   }
 }
 
-export interface RotatePlayerResponseMessage {
-  sys: {
-    type: MessageTypes.Response
-    id: 'ComponentUpdate'
+export interface MovePlayerResponseMessage {
+  type: MessageTypes.Response
+  id: ResponseTypes.MovePlayer
+  success: boolean
+  // details are only present if `success` === true
+  details?: {
+    position: Position
   }
+}
+
+export interface RotatePlayerResponseMessage {
+  type: MessageTypes.Response
+  id: 'ComponentUpdate'
   success: boolean
 }
 
 export interface RadarScanNotificationMessage {
-  sys: {
-    type: MessageTypes.Notification
-    id: NotificationTypes.RadarScan
-  }
+  type: MessageTypes.Notification
+  id: NotificationTypes.RadarScan
   data: {
     players: { position: Position }[]
     unknown: { position: Position }[]
@@ -106,17 +93,13 @@ export interface RadarScanNotificationMessage {
 }
 
 export interface ShootRequestMessage {
-  sys: {
-    type: MessageTypes.Request
-    id: RequestTypes.Shoot
-  }
+  type: MessageTypes.Request
+  id: RequestTypes.Shoot
 }
 
 export interface StartGameNofiticationMessage {
-  sys: {
-    type: MessageTypes.Notification
-    id: NotificationTypes.StartGame
-  }
+  type: MessageTypes.Notification
+  id: NotificationTypes.StartGame
 }
 
 export interface RadarScan {
