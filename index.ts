@@ -36,6 +36,7 @@ interface State {
 const ws = new WebSocket('ws://localhost:8889')
 const gunner = new Gunner()
 const argv = yargs.demand(['i']).argv
+const playerId = argv.i as string
 const messagesLogPath = path.join(__dirname, argv.i + '-messages.log')
 let lastMovementConfirmed = false
 
@@ -196,7 +197,7 @@ ws.on('open', function open (): void {
     type: MessageTypes.Request,
     id: RequestTypes.RegisterPlayer,
     data: {
-      id: `${Date.now()}`
+      id: playerId
     }
   }
 
