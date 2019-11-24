@@ -16,6 +16,7 @@ const GAP_TO_ARENA_BORDERS = PLAYER_RADIUS * 2
 export interface IPlanner {
   locations: {
     current: Position
+    previous?: Position
   }
   calculate (scan: RadarScan): RotateAction | MoveAction
 }
@@ -23,7 +24,10 @@ export interface IPlanner {
 export default class Planner implements IPlanner {
   private readonly isTracker: boolean
   private arena: { width: number, height: number }
-  public locations: any
+  public locations: {
+    current: Position
+    previous?: Position
+  }
   public rotation: number
 
   constructor (options: {
@@ -39,10 +43,29 @@ export default class Planner implements IPlanner {
     this.isTracker = options.tracker
     this.arena = options.arena
     this.rotation = options.rotation
-    this.locations = { current: _.clone(options.position) }
+    this.locations = { current: _.clone(options.position), previous: undefined }
   }
 
   calculate (scan: RadarScan): RotateAction | MoveAction {
+    if (this.locations.previous) {
+      const { x: currentX, y: currentY } = this.locations.current
+      const { x: previousX, y: previousY } = this.locations.previous
+
+      const isStalled = currentX === previousX && currentY === previousY
+      // TODO take into account also if the previous action was a `movement`
+
+      console.log(isStalled, this.rotation, (this.rotation + 180) % 360)
+      this.rotation = (this.rotation + 180) % 360
+      if (isStalled) {
+        return {
+          type: ActionTypes.Rotate,
+          data: {
+            rotation: (this.rotation + 180) % 360
+          }
+        }
+      }
+    }
+
     const leftishDirection = this.rotation >= 315 && this.rotation <= 360 || this.rotation >= 0 && this.rotation <= 45
     const toppishDirection = this.rotation > 45 && this.rotation <= 135
     const rightishDirection = this.rotation > 135 && this.rotation <= 225

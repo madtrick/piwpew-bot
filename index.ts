@@ -144,6 +144,7 @@ function analyzeMessage (ws: WebSocket, message: any, state: State): State {
     if (message.success && message.details) {
       lastMovementConfirmed = true
       const { position } = message.details
+      state.bot!.planner.locations.previous = state.bot!.planner.locations.current
       state.bot!.planner.locations.current = position
       state.bot!.location = position
     }
