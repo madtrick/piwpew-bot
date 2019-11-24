@@ -97,7 +97,7 @@ function isMovePlayerResponseMessage (message: any): message is MovePlayerRespon
 function isRotatePlayerResponseMessage (message: any): message is RotatePlayerResponseMessage {
   const { type, id } = message
 
-  return type === MessageTypes.Response && id === 'ComponentUpdate'
+  return type === MessageTypes.Response && id === 'RotatePlayer'
 }
 
 function isRadarScanNotificationMessage (message: any): message is RadarScanNotificationMessage {

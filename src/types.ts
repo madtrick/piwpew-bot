@@ -78,7 +78,7 @@ export interface MovePlayerResponseMessage {
 
 export interface RotatePlayerResponseMessage {
   type: MessageTypes.Response
-  id: 'ComponentUpdate'
+  id: 'RotatePlayer'
   success: boolean
 }
 
