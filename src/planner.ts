@@ -24,6 +24,7 @@ export default class Planner implements IPlanner {
   private readonly isTracker: boolean
   private arena: { width: number, height: number }
   public locations: any
+  public rotation: number
 
   constructor (options: {
     tracker: boolean,
@@ -37,12 +38,19 @@ export default class Planner implements IPlanner {
   }) {
     this.isTracker = options.tracker
     this.arena = options.arena
+    this.rotation = options.rotation
     this.locations = { current: _.clone(options.position) }
   }
 
   calculate (scan: RadarScan): RotateAction | MoveAction {
-    if ((this.locations.current.x + PLAYER_RADIUS) > (this.arena.width - GAP_TO_ARENA_BORDERS)) {
+    const leftishDirection = this.rotation >= 315 && this.rotation <= 360 || this.rotation >= 0 && this.rotation <= 45
+    const toppishDirection = this.rotation > 45 && this.rotation <= 135
+    const rightishDirection = this.rotation > 135 && this.rotation <= 225
+    const bottomishDirection = this.rotation > 225 && this.rotation < 315
+
+    if (leftishDirection && ((this.locations.current.x + PLAYER_RADIUS) > (this.arena.width - GAP_TO_ARENA_BORDERS))) {
       const rotation = _.random(120, 240)
+      this.rotation = rotation
 
       return {
         type: ActionTypes.Rotate,
@@ -52,13 +60,14 @@ export default class Planner implements IPlanner {
       }
     }
 
-    if (this.locations.current.x - PLAYER_RADIUS < GAP_TO_ARENA_BORDERS) {
+    if (rightishDirection && (this.locations.current.x - PLAYER_RADIUS < GAP_TO_ARENA_BORDERS)) {
       /*
        * Add 60 to 360 so we can use the _.random function
        * to calculate the angle in just one go. Get the reminder
        * to return a value between 0 and 60
        */
       const rotation = _.random(330, 420) % 360
+      this.rotation = rotation
 
       return {
         type: ActionTypes.Rotate,
@@ -68,8 +77,9 @@ export default class Planner implements IPlanner {
       }
     }
 
-    if ((this.locations.current.y + PLAYER_RADIUS) > (this.arena.height - GAP_TO_ARENA_BORDERS)) {
+    if (toppishDirection && ((this.locations.current.y + PLAYER_RADIUS) > (this.arena.height - GAP_TO_ARENA_BORDERS))) {
       const rotation = _.random(240, 330)
+      this.rotation = rotation
 
       return {
         type: ActionTypes.Rotate,
@@ -79,8 +89,9 @@ export default class Planner implements IPlanner {
       }
     }
 
-    if ((this.locations.current.y - PLAYER_RADIUS) < GAP_TO_ARENA_BORDERS) {
+    if (bottomishDirection && ((this.locations.current.y - PLAYER_RADIUS) < GAP_TO_ARENA_BORDERS)) {
       const rotation = _.random(30, 150)
+      this.rotation = rotation
 
       return {
         type: ActionTypes.Rotate,
@@ -99,8 +110,8 @@ export default class Planner implements IPlanner {
       }
     }
 
-    if (this.isTracker && !_.isEmpty(scan.players)) {
       const rotation = this.trackPlayer(scan.players)
+      this.rotation = rotation
 
       return {
         type: ActionTypes.Rotate,
@@ -108,8 +119,8 @@ export default class Planner implements IPlanner {
           rotation
         }
       }
-    } else if (!this.isTracker && !_.isEmpty(scan.players)) {
       const rotation = this.escapePlayer(scan.players)
+      this.rotation = rotation
 
       return {
         type: ActionTypes.Rotate,
