@@ -10,7 +10,10 @@ import {
   ActionTypes,
   Bot,
   Rotation,
-  MovementDirection,
+  MovementDirection
+} from './src/types'
+
+import {
   MessageTypes,
   NotificationTypes,
   ResponseTypes,
@@ -26,7 +29,7 @@ import {
   DeployMineRequestMessage,
   StartGameNofiticationMessage,
   JoinGameNotificationMessage
-} from './src/types'
+} from './src/messages'
 import { ARENA_HEIGHT, ARENA_WIDTH } from './src/constants'
 
 
