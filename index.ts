@@ -15,20 +15,18 @@ import {
 
 import {
   MessageTypes,
-  NotificationTypes,
-  ResponseTypes,
   RequestTypes,
   RegisterPlayerRequestMessage,
-  RegisterPlayerResponseMessage,
   MovePlayerRequestMessage,
-  MovePlayerResponseMessage,
   RotatePlayerRequestMessage,
-  RotatePlayerResponseMessage,
-  RadarScanNotificationMessage,
   ShootRequestMessage,
   DeployMineRequestMessage,
-  StartGameNofiticationMessage,
-  JoinGameNotificationMessage
+  isRegisterPlayerResponseMessage,
+  isMovePlayerResponseMessage,
+  isRotatePlayerResponseMessage,
+  isRadarScanNotificationMessage,
+  isStartGameNotificationMessage,
+  isJoinGameNotificationMessage
 } from './src/messages'
 import { ARENA_HEIGHT, ARENA_WIDTH } from './src/constants'
 
@@ -95,43 +93,6 @@ function deployMine (ws: WebSocket): void {
   writeMessagesToFile('send', data)
 
   ws.send(JSON.stringify(data))
-}
-
-function isRegisterPlayerResponseMessage (message: any): message is RegisterPlayerResponseMessage {
-  console.log(message)
-  const { type, id } = message
-
-  return type === MessageTypes.Response && id === ResponseTypes.RegisterPlayer
-}
-
-function isMovePlayerResponseMessage (message: any): message is MovePlayerResponseMessage {
-  const { type, id } = message
-
-  return type === MessageTypes.Response && id === ResponseTypes.MovePlayer
-}
-
-function isRotatePlayerResponseMessage (message: any): message is RotatePlayerResponseMessage {
-  const { type, id } = message
-
-  return type === MessageTypes.Response && id === 'RotatePlayer'
-}
-
-function isRadarScanNotificationMessage (message: any): message is RadarScanNotificationMessage {
-  const { type, id } = message
-
-  return type === MessageTypes.Notification && id === NotificationTypes.RadarScan
-}
-
-function isStartGameNotificationMessage (message: any): message is StartGameNofiticationMessage {
-  const { type, id } = message
-
-  return type === MessageTypes.Notification && id === NotificationTypes.StartGame
-}
-
-function isJoinGameNotificationMessage (message: any): message is JoinGameNotificationMessage {
-  const { type, id } = message
-
-  return type === MessageTypes.Notification && id === NotificationTypes.JoinGame
 }
 
 function analyzeMessage (ws: WebSocket, message: any, state: State): State {

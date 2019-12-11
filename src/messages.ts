@@ -1,4 +1,4 @@
-import { MovementDirection, Rotation } from './types'
+import { MovementDirection, Rotation, Position } from './types'
 
 export enum MessageTypes {
   Request = 'Request',
@@ -114,3 +114,39 @@ export interface RadarScan {
   unknown: { position: Position }[]
 }
 
+export function isRegisterPlayerResponseMessage (message: any): message is RegisterPlayerResponseMessage {
+  console.log(message)
+  const { type, id } = message
+
+  return type === MessageTypes.Response && id === ResponseTypes.RegisterPlayer
+}
+
+export function isMovePlayerResponseMessage (message: any): message is MovePlayerResponseMessage {
+  const { type, id } = message
+
+  return type === MessageTypes.Response && id === ResponseTypes.MovePlayer
+}
+
+export function isRotatePlayerResponseMessage (message: any): message is RotatePlayerResponseMessage {
+  const { type, id } = message
+
+  return type === MessageTypes.Response && id === 'RotatePlayer'
+}
+
+export function isRadarScanNotificationMessage (message: any): message is RadarScanNotificationMessage {
+  const { type, id } = message
+
+  return type === MessageTypes.Notification && id === NotificationTypes.RadarScan
+}
+
+export function isStartGameNotificationMessage (message: any): message is StartGameNofiticationMessage {
+  const { type, id } = message
+
+  return type === MessageTypes.Notification && id === NotificationTypes.StartGame
+}
+
+export function isJoinGameNotificationMessage (message: any): message is JoinGameNotificationMessage {
+  const { type, id } = message
+
+  return type === MessageTypes.Notification && id === NotificationTypes.JoinGame
+}
