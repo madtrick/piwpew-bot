@@ -10,18 +10,20 @@ export enum RequestTypes {
   RegisterPlayer = 'RegisterPlayer',
     MovePlayer = 'MovePlayer',
     RotatePlayer = 'RotatePlayer',
-    Shoot = 'Shoot'
+    Shoot = 'Shoot',
+    DeployMine = 'DeployMine'
 }
 
 export enum ResponseTypes {
   RegisterPlayer = 'RegisterPlayer',
-    MovePlayer = 'MovePlayer',
-    RotatePlayer = 'RotatePlayer'
+  MovePlayer = 'MovePlayer',
+  RotatePlayer = 'RotatePlayer'
 }
 
 export enum NotificationTypes {
   RadarScan = 'RadarScan',
-    StartGame = 'StartGame'
+  StartGame = 'StartGame',
+  JoinGame = 'JoinGame'
 }
 
 export interface Position {
@@ -97,13 +99,24 @@ export interface ShootRequestMessage {
   id: RequestTypes.Shoot
 }
 
+export interface DeployMineRequestMessage {
+  type: MessageTypes.Request
+  id: RequestTypes.DeployMine
+}
+
 export interface StartGameNofiticationMessage {
   type: MessageTypes.Notification
   id: NotificationTypes.StartGame
 }
 
+export interface JoinGameNotificationMessage {
+  type: MessageTypes.Notification
+  id: NotificationTypes.JoinGame
+}
+
 export interface RadarScan {
   players: { position: Position }[]
+  unknown: { position: Position }[]
 }
 
 export type Rotation = number
@@ -111,7 +124,8 @@ export type Rotation = number
 export enum ActionTypes {
   Rotate,
   Shoot,
-  Move
+  Move,
+  DeployMine
 }
 
 export enum MovementDirection {
@@ -142,4 +156,8 @@ export interface MoveAction {
 
 export interface ShootAction {
   type: ActionTypes.Shoot
+}
+
+export interface DeployMineAction {
+  type: ActionTypes.DeployMine
 }

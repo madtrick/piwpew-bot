@@ -1,15 +1,17 @@
 import rotationToTarget from './utils/rotation-to-target'
 import { ActionTypes, Position, Rotation, RadarScan, ShootAction, RotateAction } from './types'
 
-const delta = 18
+const delta = 5
 
 export default class Gunner {
   calculate (rotation: Rotation, position: Position, scan: RadarScan): ShootAction | RotateAction {
-    const player = scan.players[0]
-    const rotationToPlayer = rotationToTarget(position, player.position)
+    // TODO the possibleTargets is duplicated with the oracle and the planner
+    const possibleTargets = [...scan.players, ...scan.unknown]
+    const rotationToPlayer = rotationToTarget(position, possibleTargets[0].position)
 
+    console.log('Rotation to player', rotationToPlayer, rotation, mod360(rotation + delta), mod360(rotation - delta))
     if (
-      rotationToPlayer < mod360(rotation + delta) ||
+      rotationToPlayer < mod360(rotation + delta) &&
       rotationToPlayer > mod360(rotation - delta)
     ) {
       console.log('Shoot mecajondios')

@@ -7,6 +7,7 @@ import {
   ActionTypes,
   RotateAction,
   MoveAction,
+  DeployMineAction,
   RadarScan
 } from './types'
 import { PLAYER_RADIUS } from './constants'
@@ -18,7 +19,7 @@ export interface IPlanner {
     current: Position
     previous?: Position
   }
-  calculate (scan: RadarScan): RotateAction | MoveAction
+  calculate (scan: RadarScan): RotateAction | MoveAction | DeployMineAction
 }
 
 export default class Planner implements IPlanner {
@@ -29,6 +30,9 @@ export default class Planner implements IPlanner {
     previous?: Position
   }
   public rotation: number
+  private rotatedToUnstall: boolean
+  private mines: number
+  private mineDeployed: boolean
 
   constructor (options: {
     tracker: boolean,
@@ -40,13 +44,17 @@ export default class Planner implements IPlanner {
       height: number
     }
   }) {
+    // TODO number hardcoded to the current value of mines per player
+    this.mines = 5
+    this.mineDeployed = false
     this.isTracker = options.tracker
     this.arena = options.arena
     this.rotation = options.rotation
     this.locations = { current: _.clone(options.position), previous: undefined }
+    this.rotatedToUnstall = false
   }
 
-  calculate (scan: RadarScan): RotateAction | MoveAction {
+  calculate (scan: RadarScan): RotateAction | MoveAction | DeployMineAction {
     if (this.locations.previous) {
       const { x: currentX, y: currentY } = this.locations.current
       const { x: previousX, y: previousY } = this.locations.previous
@@ -55,12 +63,23 @@ export default class Planner implements IPlanner {
       // TODO take into account also if the previous action was a `movement`
 
       console.log(isStalled, this.rotation, (this.rotation + 180) % 360)
-      this.rotation = (this.rotation + 180) % 360
-      if (isStalled) {
+      if (isStalled && !this.rotatedToUnstall) {
+        this.rotatedToUnstall = true
+        this.rotation = (this.rotation + 180) % 360
         return {
           type: ActionTypes.Rotate,
           data: {
-            rotation: (this.rotation + 180) % 360
+            rotation: this.rotation
+          }
+        }
+      }
+
+      if (isStalled && this.rotatedToUnstall) {
+        this.rotatedToUnstall = false
+        return {
+          type: ActionTypes.Move,
+          data: {
+            direction: MovementDirection.Forward
           }
         }
       }
@@ -124,7 +143,12 @@ export default class Planner implements IPlanner {
       }
     }
 
-    if (scan.players.length === 0) {
+    // TODO this is duplicated with code in the oracle
+    // NOTE the possibleTargets will include as well shots within the radar radius
+    // but not withing the identification radius
+    const possibleTargets = [...scan.players, ...scan.unknown]
+
+    if (possibleTargets.length === 0) {
       return {
         type: ActionTypes.Move,
         data: {
@@ -133,7 +157,9 @@ export default class Planner implements IPlanner {
       }
     }
 
-      const rotation = this.trackPlayer(scan.players)
+    console.log('IS TRACKER', this.isTracker)
+    if (this.isTracker) {
+      const rotation = this.trackPlayer(possibleTargets)
       this.rotation = rotation
 
       return {
@@ -142,18 +168,40 @@ export default class Planner implements IPlanner {
           rotation
         }
       }
-      const rotation = this.escapePlayer(scan.players)
-      this.rotation = rotation
+    } else {
+      const rotation = this.escapePlayer(possibleTargets)
+      console.log('NO TRACKER', rotation, this.rotation)
 
-      return {
-        type: ActionTypes.Rotate,
-        data: {
-          rotation
+      if (rotation === this.rotation) {
+        if (this.mines > 0 && !this.mineDeployed) {
+          this.mines = this.mines - 1
+          this.mineDeployed = true
+          const action: DeployMineAction = {
+            type: ActionTypes.DeployMine
+          }
+
+          return action
+        } else {
+          this.mineDeployed = false
+          return {
+            type: ActionTypes.Move,
+            data: {
+              direction: MovementDirection.Forward
+            }
+          }
         }
+      } else {
+        this.rotation = rotation
+
+        return {
+          type: ActionTypes.Rotate,
+          data: {
+            rotation
+          }
+        }
+
       }
     }
-
-    throw new Error('This should not be possible')
   }
 
   private escapePlayer (elements: { position: Position }[]): Rotation {

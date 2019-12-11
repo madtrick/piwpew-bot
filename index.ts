@@ -23,7 +23,9 @@ import {
   RotatePlayerResponseMessage,
   RadarScanNotificationMessage,
   ShootRequestMessage,
-  StartGameNofiticationMessage
+  DeployMineRequestMessage,
+  StartGameNofiticationMessage,
+  JoinGameNotificationMessage
 } from './src/types'
 import { ARENA_HEIGHT, ARENA_WIDTH } from './src/constants'
 
@@ -81,6 +83,17 @@ function shoot (ws: WebSocket): void {
   ws.send(JSON.stringify(data))
 }
 
+function deployMine (ws: WebSocket): void {
+  const data: DeployMineRequestMessage = {
+    type: MessageTypes.Request,
+    id: RequestTypes.DeployMine
+  }
+
+  writeMessagesToFile('send', data)
+
+  ws.send(JSON.stringify(data))
+}
+
 function isRegisterPlayerResponseMessage (message: any): message is RegisterPlayerResponseMessage {
   console.log(message)
   const { type, id } = message
@@ -110,6 +123,12 @@ function isStartGameNotificationMessage (message: any): message is StartGameNofi
   const { type, id } = message
 
   return type === MessageTypes.Notification && id === NotificationTypes.StartGame
+}
+
+function isJoinGameNotificationMessage (message: any): message is JoinGameNotificationMessage {
+  const { type, id } = message
+
+  return type === MessageTypes.Notification && id === NotificationTypes.JoinGame
 }
 
 function analyzeMessage (ws: WebSocket, message: any, state: State): State {
@@ -167,11 +186,16 @@ function analyzeMessage (ws: WebSocket, message: any, state: State): State {
       }
 
       if (action.type === ActionTypes.Rotate) {
+        state.bot!.rotation = action.data.rotation
         rotate(ws, action.data.rotation)
       }
 
       if (action.type === ActionTypes.Shoot) {
         shoot(ws)
+      }
+
+      if (action.type === ActionTypes.DeployMine) {
+        deployMine(ws)
       }
     }
 
@@ -179,6 +203,12 @@ function analyzeMessage (ws: WebSocket, message: any, state: State): State {
   }
 
   if (isStartGameNotificationMessage(message)) {
+    move(ws, MovementDirection.Forward)
+
+    return state
+  }
+
+  if (isJoinGameNotificationMessage(message)) {
     move(ws, MovementDirection.Forward)
 
     return state
