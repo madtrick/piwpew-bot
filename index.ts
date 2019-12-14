@@ -217,16 +217,21 @@ function analyzeMessage (ws: WebSocket, message: any, state: BotState, bot: BotA
   }
 
   if (isStartGameNotificationMessage(message)) {
-    const { state: newState } = bot.handlers.startGameNotification(state)
-    move(ws, MovementDirection.Forward)
+    const { state: newState, actions: [action] } = bot.handlers.startGameNotification(state)
+
+    if (action.type === ActionTypes.Move) {
+      move(ws, action.data.direction)
+    }
 
     return newState
   }
 
   if (isJoinGameNotificationMessage(message)) {
-    const { state: newState } = bot.handlers.joinGameNotification(state)
+    const { state: newState, actions: [action] } = bot.handlers.joinGameNotification(state)
 
-    move(ws, MovementDirection.Forward)
+    if (action.type === ActionTypes.Move) {
+      move(ws, action.data.direction)
+    }
 
     return newState
   }
