@@ -148,14 +148,14 @@ function analyzeMessage (ws: WebSocket, message: any, state: BotState, bot: BotA
 
       return newState
     } else {
-      if (typeof message.details === 'object') {
-        const { position, rotation } = message.details
-        const { state: newState } = bot.handlers.registerPlayerResponse({ success: true, data: { position, rotation } }, state)
-
-        return newState
-      } else {
+      if (typeof message.details !== 'object') {
         throw new Error('invalid response message')
       }
+
+      const { position, rotation } = message.details
+      const { state: newState } = bot.handlers.registerPlayerResponse({ success: true, data: { position, rotation } }, state)
+
+      return newState
     }
   }
 
@@ -165,14 +165,14 @@ function analyzeMessage (ws: WebSocket, message: any, state: BotState, bot: BotA
 
       return newState
     } else {
-      if (typeof message.details === 'object') {
-        const { position } = message.details
-        const { state: newState } = bot.handlers.movePlayerResponse({ success: true, data: { position } }, state)
-
-        return newState
-      } else {
+      if (typeof message.details !== 'object') {
         throw new Error('invalid response message')
       }
+
+      const { position } = message.details
+      const { state: newState } = bot.handlers.movePlayerResponse({ success: true, data: { position } }, state)
+
+      return newState
     }
   }
 
@@ -183,6 +183,10 @@ function analyzeMessage (ws: WebSocket, message: any, state: BotState, bot: BotA
   }
 
   if (isRadarScanNotificationMessage(message)) {
+    if (typeof message.data !== 'object') {
+      throw new Error('invalid message response')
+    }
+
     const { data } = message
     const { state: newState, actions: [action] } = bot.handlers.radarScanNotification(data, state)
 
