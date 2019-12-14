@@ -11,8 +11,6 @@ import {
   MovementDirection
 } from './src/types'
 
-import { bot } from './src/bot'
-
 import {
   MessageTypes,
   RequestTypes,
@@ -135,29 +133,27 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState, bot: Bot
     const { data } = message
     const { state: newState, actions: [action] } = bot.handlers.radarScanNotification(data, state)
 
+    if (!action) {
+      return newState
+    }
+
     if (action.type === ActionTypes.Move) {
       move(ws, action.data.direction)
-
-      return newState
     }
 
     if (action.type === ActionTypes.Rotate) {
       rotate(ws, action.data.rotation)
-
-      return newState
     }
 
     if (action.type === ActionTypes.Shoot) {
       shoot(ws)
-
-      return newState
     }
 
     if (action.type === ActionTypes.DeployMine) {
       deployMine(ws)
-
-      return newState
     }
+
+    return newState
   }
 
   if (isStartGameNotificationMessage(message)) {
@@ -173,7 +169,7 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState, bot: Bot
   if (isJoinGameNotificationMessage(message)) {
     const { state: newState, actions: [action] } = bot.handlers.joinGameNotification(state)
 
-    if (action.type === ActionTypes.Move) {
+    if (action && action.type === ActionTypes.Move) {
       move(ws, action.data.direction)
     }
 
@@ -205,11 +201,21 @@ ws.on('open', function open (): void {
     shooter: argv.s as boolean,
     bot: {}
   }
-  ws.on('message', function handleMessage (json: string): void {
-    const message = JSON.parse(json)
 
-    writeMessagesToFile('recv', message)
-    state = dispatchMessage(ws, message, state, bot)
+  let botImport: Promise<{ bot: BotAPI}>
+  if (argv.p) {
+    botImport = import(argv.p as string)
+  } else {
+    botImport = import('./src/bot')
+  }
+
+  botImport.then(({ bot }) => {
+    ws.on('message', function handleMessage (json: string): void {
+      const message = JSON.parse(json)
+
+      writeMessagesToFile('recv', message)
+      state = dispatchMessage(ws, message, state, bot)
+    })
   })
 })
 
