@@ -3,15 +3,15 @@ import * as path from 'path'
 import WebSocket from 'ws'
 import * as _ from 'lodash'
 import yargs from 'yargs'
-import Planner from './src/planner'
-import Oracle from './src/oracle'
-import Gunner from './src/gunner'
 import {
+  Action,
   ActionTypes,
-  Bot,
+  Position,
   Rotation,
   MovementDirection
 } from './src/types'
+
+import { bot } from './src/bot'
 
 import {
   MessageTypes,
@@ -28,20 +28,11 @@ import {
   isStartGameNotificationMessage,
   isJoinGameNotificationMessage
 } from './src/messages'
-import { ARENA_HEIGHT, ARENA_WIDTH } from './src/constants'
-
-
-interface State {
-  bot?: Bot
-  oracle?: Oracle
-}
 
 const ws = new WebSocket('ws://localhost:8889')
-const gunner = new Gunner()
 const argv = yargs.demand(['i']).argv
 const playerId = argv.i as string
 const messagesLogPath = path.join(__dirname, argv.i + '-messages.log')
-let lastMovementConfirmed = false
 
 function move (ws: WebSocket, direction: MovementDirection): void {
   const data: MovePlayerRequestMessage = {
@@ -95,92 +86,149 @@ function deployMine (ws: WebSocket): void {
   ws.send(JSON.stringify(data))
 }
 
-function analyzeMessage (ws: WebSocket, message: any, state: State): State {
-  const data = message.data
+export interface BotState {
+  tracker: boolean
+  shooter: boolean
+  bot: any
+}
 
+interface RegisterPlayerResponseHandler {
+  (data: SuccessfulRegisterPlayerResponse | FailedRegisterPlayerResponse, state: BotState): { state: BotState, actions: Action[] }
+
+}
+
+export interface BotAPI {
+  handlers: {
+    radarScanNotification: (scan: { players: { position: Position }[], shots: { position: Position }[], unknown: { position: Position }[] }, state: BotState) => { state: BotState, actions: Action[] }
+    registerPlayerResponse: RegisterPlayerResponseHandler
+    rotatePlayerResponse: (success: SuccessfulRotatePlayerResponse | FailedRotatePlayerResponse, state: BotState) => { state: BotState, actions: Action[] }
+    movePlayerResponse: (data: SuccessfulMovePlayerResponse | FailedMovePlayerResponse, state: BotState) => { state: BotState, actions: Action[] }
+    startGameNotification: (state: BotState) => { state: BotState, actions: Action[] }
+    joinGameNotification: (state: BotState) => { state: BotState, actions: Action[] }
+  }
+}
+
+export interface SuccessfulRegisterPlayerResponse {
+  success: true
+  data: {
+    position: Position
+    rotation: Rotation
+  }
+}
+
+export interface FailedRegisterPlayerResponse {
+  success: false
+  data: string
+}
+
+export interface SuccessfulMovePlayerResponse {
+  success: false
+  data: string
+}
+
+export interface FailedMovePlayerResponse {
+  success: true
+  data: {
+    position: Position
+  }
+}
+
+export interface SuccessfulRotatePlayerResponse {
+  success: true
+}
+
+export interface FailedRotatePlayerResponse {
+  success: false
+}
+
+function analyzeMessage (ws: WebSocket, message: any, state: BotState, bot: BotAPI): BotState {
   if (isRegisterPlayerResponseMessage(message)) {
-    if (message.success && message.details) {
-      const { position, rotation } = message.details
+    if (!message.success) {
+      const { state: newState } = bot.handlers.registerPlayerResponse({ success: message.success, data: 'Failed player register' }, state)
 
-      state.bot = {
-        planner: new Planner({
-          tracker: argv.t as boolean,
-          direction: MovementDirection.Forward,
-          position,
-          rotation,
-          arena: {
-            width: ARENA_WIDTH,
-            height: ARENA_HEIGHT
-          }
-        }),
-        location: position,
-        rotation
+      return newState
+    } else {
+      if (typeof message.details === 'object') {
+        const { position, rotation } = message.details
+        const { state: newState } = bot.handlers.registerPlayerResponse({ success: true, data: { position, rotation } }, state)
+
+        return newState
+      } else {
+        throw new Error('invalid response message')
       }
-
-      state.oracle = new Oracle({ shooter: argv.s as boolean })
     }
-
-    return state
   }
 
   if (isMovePlayerResponseMessage(message)) {
-    if (message.success && message.details) {
-      lastMovementConfirmed = true
-      const { position } = message.details
-      state.bot!.planner.locations.previous = state.bot!.planner.locations.current
-      state.bot!.planner.locations.current = position
-      state.bot!.location = position
-    }
+    if (!message.success) {
+      const { state: newState } = bot.handlers.movePlayerResponse({ success: message.success, data: 'Failed to move player' }, state)
 
-    return state
+      return newState
+    } else {
+      if (typeof message.details === 'object') {
+        const { position } = message.details
+        const { state: newState } = bot.handlers.movePlayerResponse({ success: true, data: { position } }, state)
+
+        return newState
+      } else {
+        throw new Error('invalid response message')
+      }
+    }
   }
 
   if (isRotatePlayerResponseMessage(message)) {
-    // TODO
-    return state
+    const { state: newState } = bot.handlers.rotatePlayerResponse({ success: message.success }, state)
+
+    return newState
   }
 
   if (isRadarScanNotificationMessage(message)) {
-    if (lastMovementConfirmed) {
-      const action = state.oracle!.decide(state.bot!, data, state.bot!.planner, gunner)
+    const { data } = message
+    const { state: newState, actions: [action] } = bot.handlers.radarScanNotification(data, state)
 
-      if (action.type === ActionTypes.Move) {
-        move(ws, action.data.direction)
-        lastMovementConfirmed = false
-      }
+    if (action.type === ActionTypes.Move) {
+      move(ws, action.data.direction)
 
-      if (action.type === ActionTypes.Rotate) {
-        state.bot!.rotation = action.data.rotation
-        rotate(ws, action.data.rotation)
-      }
-
-      if (action.type === ActionTypes.Shoot) {
-        shoot(ws)
-      }
-
-      if (action.type === ActionTypes.DeployMine) {
-        deployMine(ws)
-      }
+      return newState
     }
 
-    return state
+    if (action.type === ActionTypes.Rotate) {
+      state.bot.rotation = action.data.rotation
+      rotate(ws, action.data.rotation)
+
+      return newState
+    }
+
+    if (action.type === ActionTypes.Shoot) {
+      shoot(ws)
+
+      return newState
+    }
+
+    if (action.type === ActionTypes.DeployMine) {
+      deployMine(ws)
+
+      return newState
+    }
   }
 
   if (isStartGameNotificationMessage(message)) {
+    const { state: newState } = bot.handlers.startGameNotification(state)
     move(ws, MovementDirection.Forward)
 
-    return state
+    return newState
   }
 
   if (isJoinGameNotificationMessage(message)) {
+    const { state: newState } = bot.handlers.joinGameNotification(state)
+
     move(ws, MovementDirection.Forward)
 
-    return state
+    return newState
   }
 
   console.log('unexpected message')
   console.dir(message, { colors: true, depth: null })
-  lastMovementConfirmed = true // reset
 
   return state
 }
@@ -198,12 +246,17 @@ ws.on('open', function open (): void {
 
   ws.send(JSON.stringify(message), { mask: true })
 
-  let state: State = {}
+  let state: BotState = {
+    // TODO fix the typings here
+    tracker: argv.t as boolean,
+    shooter: argv.s as boolean,
+    bot: {}
+  }
   ws.on('message', function handleMessage (json: string): void {
     const message = JSON.parse(json)
 
     writeMessagesToFile('recv', message)
-    state = analyzeMessage(ws, message, state)
+    state = analyzeMessage(ws, message, state, bot)
   })
 })
 

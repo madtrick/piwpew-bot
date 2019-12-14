@@ -1,4 +1,4 @@
-npm-debug.log
+*.log
 dist/
 node_modules/
 built/

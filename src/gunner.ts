@@ -1,5 +1,6 @@
 import rotationToTarget from './utils/rotation-to-target'
-import { ActionTypes, Position, Rotation, RadarScan, ShootAction, RotateAction } from './types'
+import { ActionTypes, Position, Rotation, ShootAction, RotateAction } from './types'
+import { RadarScan } from './messages'
 
 const delta = 5
 

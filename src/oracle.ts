@@ -1,5 +1,6 @@
 // import { DISTANCE_THRESHOLD_TRIGGER_PLANNER } from './constants'
-import { RadarScan, Bot, ActionTypes, MovementDirection, Rotation } from './types'
+import { Bot, ActionTypes, MovementDirection, Rotation } from './types'
+import { RadarScan } from './messages'
 import Gunner from './gunner'
 import { IPlanner } from './planner'
 

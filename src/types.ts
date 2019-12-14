@@ -9,7 +9,8 @@ export enum ActionTypes {
   Rotate,
   Shoot,
   Move,
-  DeployMine
+  DeployMine,
+  Exit
 }
 
 export type Rotation = number
@@ -46,3 +47,5 @@ export interface ShootAction {
 export interface DeployMineAction {
   type: ActionTypes.DeployMine
 }
+
+export type Action = RotateAction | MoveAction | ShootAction | DeployMineAction

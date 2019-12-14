@@ -7,9 +7,9 @@ import {
   ActionTypes,
   RotateAction,
   MoveAction,
-  DeployMineAction,
-  RadarScan
+  DeployMineAction
 } from './types'
+import { RadarScan } from './messages'
 import { PLAYER_RADIUS } from './constants'
 
 const GAP_TO_ARENA_BORDERS = PLAYER_RADIUS * 2
