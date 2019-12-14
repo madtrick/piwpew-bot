@@ -69,7 +69,7 @@ export const bot: BotAPI = {
     },
 
     radarScanNotification: (scan: { players: { position: Position }[], shots: { position: Position }[], unknown: { position: Position }[] }, state: BotState): { state: BotState, actions: Action[] } => {
-      const action = state.bot.oracle.decide(state.bot!, scan, state.bot.planner, state.bot.gunner)
+      const action = state.bot.oracle.decide(state.bot, scan, state.bot.planner, state.bot.gunner)
 
       return { state, actions: [action] }
     },

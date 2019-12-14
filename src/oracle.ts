@@ -1,5 +1,5 @@
 // import { DISTANCE_THRESHOLD_TRIGGER_PLANNER } from './constants'
-import { Bot, ActionTypes, MovementDirection, Rotation } from './types'
+import { Bot, Action, ActionTypes, MovementDirection, Rotation } from './types'
 import { RadarScan } from './messages'
 import Gunner from './gunner'
 import { IPlanner } from './planner'
@@ -30,11 +30,18 @@ export default class Oracle {
 
       // console.log('distance to player', distance, planner)
 
+      let action: Action
       if (possibleTargets.length === 0) {
-        return planner.calculate(scan)
+        action = planner.calculate(scan)
       } else {
-        return gunner.calculate(bot.rotation, bot.location, scan)
+        action = gunner.calculate(bot.rotation, bot.location, scan)
       }
+
+      if (action.type === ActionTypes.Rotate) {
+        bot.rotation = action.data.rotation
+      }
+
+      return action
     }
   }
 }

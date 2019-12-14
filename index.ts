@@ -197,7 +197,6 @@ function analyzeMessage (ws: WebSocket, message: any, state: BotState, bot: BotA
     }
 
     if (action.type === ActionTypes.Rotate) {
-      state.bot.rotation = action.data.rotation
       rotate(ws, action.data.rotation)
 
       return newState
