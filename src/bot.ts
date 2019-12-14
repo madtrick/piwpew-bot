@@ -6,9 +6,12 @@ import {
   SuccessfulMovePlayerResponse,
   FailedMovePlayerResponse,
   SuccessfulRotatePlayerResponse,
-  FailedRotatePlayerResponse
-} from '..'
-import { Position, Action, ActionTypes, MovementDirection } from './types'
+  FailedRotatePlayerResponse,
+  Position,
+  Action,
+  ActionTypes,
+  MovementDirection
+} from './types'
 import Planner from './planner'
 import Oracle from './oracle'
 import Gunner from './gunner'

@@ -4,9 +4,9 @@ import WebSocket from 'ws'
 import * as _ from 'lodash'
 import yargs from 'yargs'
 import {
-  Action,
+  BotAPI,
+  BotState,
   ActionTypes,
-  Position,
   Rotation,
   MovementDirection
 } from './src/types'
@@ -84,61 +84,6 @@ function deployMine (ws: WebSocket): void {
   writeMessagesToFile('send', data)
 
   ws.send(JSON.stringify(data))
-}
-
-export interface BotState {
-  tracker: boolean
-  shooter: boolean
-  bot: any
-}
-
-interface RegisterPlayerResponseHandler {
-  (data: SuccessfulRegisterPlayerResponse | FailedRegisterPlayerResponse, state: BotState): { state: BotState, actions: Action[] }
-
-}
-
-export interface BotAPI {
-  handlers: {
-    radarScanNotification: (scan: { players: { position: Position }[], shots: { position: Position }[], unknown: { position: Position }[] }, state: BotState) => { state: BotState, actions: Action[] }
-    registerPlayerResponse: RegisterPlayerResponseHandler
-    rotatePlayerResponse: (success: SuccessfulRotatePlayerResponse | FailedRotatePlayerResponse, state: BotState) => { state: BotState, actions: Action[] }
-    movePlayerResponse: (data: SuccessfulMovePlayerResponse | FailedMovePlayerResponse, state: BotState) => { state: BotState, actions: Action[] }
-    startGameNotification: (state: BotState) => { state: BotState, actions: Action[] }
-    joinGameNotification: (state: BotState) => { state: BotState, actions: Action[] }
-  }
-}
-
-export interface SuccessfulRegisterPlayerResponse {
-  success: true
-  data: {
-    position: Position
-    rotation: Rotation
-  }
-}
-
-export interface FailedRegisterPlayerResponse {
-  success: false
-  data: string
-}
-
-export interface SuccessfulMovePlayerResponse {
-  success: false
-  data: string
-}
-
-export interface FailedMovePlayerResponse {
-  success: true
-  data: {
-    position: Position
-  }
-}
-
-export interface SuccessfulRotatePlayerResponse {
-  success: true
-}
-
-export interface FailedRotatePlayerResponse {
-  success: false
 }
 
 function dispatchMessage (ws: WebSocket, message: any, state: BotState, bot: BotAPI): BotState {
