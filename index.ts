@@ -141,7 +141,7 @@ export interface FailedRotatePlayerResponse {
   success: false
 }
 
-function analyzeMessage (ws: WebSocket, message: any, state: BotState, bot: BotAPI): BotState {
+function dispatchMessage (ws: WebSocket, message: any, state: BotState, bot: BotAPI): BotState {
   if (isRegisterPlayerResponseMessage(message)) {
     if (!message.success) {
       const { state: newState } = bot.handlers.registerPlayerResponse({ success: message.success, data: 'Failed player register' }, state)
@@ -264,7 +264,7 @@ ws.on('open', function open (): void {
     const message = JSON.parse(json)
 
     writeMessagesToFile('recv', message)
-    state = analyzeMessage(ws, message, state, bot)
+    state = dispatchMessage(ws, message, state, bot)
   })
 })
 
