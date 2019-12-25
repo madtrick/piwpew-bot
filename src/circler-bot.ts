@@ -2,7 +2,6 @@ import chalk from 'chalk'
 
 import {
   BotAPI,
-  BotState,
   SuccessfulRegisterPlayerResponse,
   FailedRegisterPlayerResponse,
   SuccessfulMovePlayerResponse,
@@ -205,12 +204,21 @@ function findRotationToCircleCenter (botPosition: Position, circleCenter: Positi
   }
 }
 
-export const bot: BotAPI = {
+/*
+ * I would like to specify the type of the bot
+ * to be BotAPI<State<Status>> to say that the api methods
+ * have to take a State<Status> but be able to refine
+ * it in each individual method to the enum keys relevant
+ * to that method. But it doesn't work. With BotAPI<State<Status>>
+ * the compiler complains that for example Status.RotateToCircle can't
+ * be assigned to Status.Unregistered (in the registerPlayerResponse method)
+ */
+export const bot: BotAPI<any> = {
   handlers: {
     registerPlayerResponse: (
       data: FailedRegisterPlayerResponse | SuccessfulRegisterPlayerResponse,
-      state: BotState<State<Status.Unregistered>>
-    ): { state: BotState<State<Status.WaitToStart | Status.Unregistered>>, actions: Action[] } => {
+      state: State<Status.Unregistered>
+    ): { state: State<Status.WaitToStart | Status.Unregistered>, actions: Action[] } => {
       console.log(chalk.cyan('RegisterPlayerResponse'))
       if (!data.success) {
         return { state, actions: [] }
@@ -224,7 +232,7 @@ export const bot: BotAPI = {
           position: data.data.position
         }
 
-        return { state: { ...state, bot: botState }, actions: [] }
+        return { state: botState, actions: [] }
       }
 
       throw new Error('not possible')
@@ -232,27 +240,23 @@ export const bot: BotAPI = {
 
     movePlayerResponse: (
       data: SuccessfulMovePlayerResponse | FailedMovePlayerResponse,
-      state: BotState<State<Status.MoveToCircle | Status.MoveToNextCirclePoint>>
-    ): { state: BotState<State<Status.MoveToCircle | Status.MoveToNextCirclePoint | Status.RotateToNextCirclePoint | Status.Stop>>, actions: Action[] } => {
+      state: State<Status.MoveToCircle | Status.MoveToNextCirclePoint>
+    ): { state: State<Status.MoveToCircle | Status.MoveToNextCirclePoint | Status.RotateToNextCirclePoint | Status.Stop>, actions: Action[] } => {
       console.log(chalk.cyan('MovePlayerResponse'))
       if (!data.success) {
-        // TODO return status.stop
         return {
           state: {
-            ...state,
-            bot: {
-              rotation: state.bot.rotation,
-              position: state.bot.position,
-              status: Status.Stop
-            }
+            rotation: state.rotation,
+            position: state.position,
+            status: Status.Stop
           },
           actions: []
         }
       }
 
-      if (state.bot.status === Status.MoveToNextCirclePoint) {
-        const xDelta = Math.abs(data.data.position.x - state.bot.statusData.nextCirclePoint.x)
-        const yDelta = Math.abs(data.data.position.y - state.bot.statusData.nextCirclePoint.y)
+      if (state.status === Status.MoveToNextCirclePoint) {
+        const xDelta = Math.abs(data.data.position.x - state.statusData.nextCirclePoint.x)
+        const yDelta = Math.abs(data.data.position.y - state.statusData.nextCirclePoint.y)
 
         if (xDelta < 5 && yDelta < 5) {
           const translation = 0.01
@@ -262,14 +266,11 @@ export const bot: BotAPI = {
 
           return {
             state: {
-              ...state,
-              bot: {
-                rotation: rotationToNextCirclePoint,
-                position: data.data.position,
-                status: Status.RotateToNextCirclePoint,
-                statusData: {
-                  nextCirclePoint: rotatedPoint
-                }
+              rotation: rotationToNextCirclePoint,
+              position: data.data.position,
+              status: Status.RotateToNextCirclePoint,
+              statusData: {
+                nextCirclePoint: rotatedPoint
               }
             },
             actions: [{ type: ActionTypes.Rotate, data: { rotation: rotationToNextCirclePoint } }]
@@ -277,14 +278,11 @@ export const bot: BotAPI = {
         } else {
           return {
             state: {
-              ...state,
-              bot: {
-                rotation: state.bot.rotation,
-                position: data.data.position,
-                status: Status.MoveToNextCirclePoint,
-                statusData: {
-                  nextCirclePoint: state.bot.statusData.nextCirclePoint
-                }
+              rotation: state.rotation,
+              position: data.data.position,
+              status: Status.MoveToNextCirclePoint,
+              statusData: {
+                nextCirclePoint: state.statusData.nextCirclePoint
               }
             },
             actions: [{ type: ActionTypes.Move, data: { direction: MovementDirection.Forward } }]
@@ -292,9 +290,9 @@ export const bot: BotAPI = {
         }
       }
 
-      if (state.bot.status === Status.MoveToCircle) {
-        const xDelta = Math.abs(data.data.position.x - state.bot.statusData.destination.x)
-        const yDelta = Math.abs(data.data.position.y - state.bot.statusData.destination.y)
+      if (state.status === Status.MoveToCircle) {
+        const xDelta = Math.abs(data.data.position.x - state.statusData.destination.x)
+        const yDelta = Math.abs(data.data.position.y - state.statusData.destination.y)
 
         if (xDelta < 5 && yDelta < 5) {
           const translation = 0.01
@@ -304,14 +302,11 @@ export const bot: BotAPI = {
 
           return {
             state: {
-              ...state,
-              bot: {
-                rotation: state.bot.rotation,
-                position: data.data.position,
-                status: Status.RotateToNextCirclePoint,
-                statusData: {
-                  nextCirclePoint: rotatedPoint
-                }
+              rotation: state.rotation,
+              position: data.data.position,
+              status: Status.RotateToNextCirclePoint,
+              statusData: {
+                nextCirclePoint: rotatedPoint
               }
             },
             actions: [{ type: ActionTypes.Rotate, data: { rotation: rotationToNextCirclePoint } }]
@@ -319,14 +314,11 @@ export const bot: BotAPI = {
         } else {
           return {
             state: {
-              ...state,
-              bot: {
-                rotation: state.bot.rotation,
-                position: data.data.position,
-                status: Status.MoveToCircle,
-                statusData: {
-                  destination: state.bot.statusData.destination
-                }
+              rotation: state.rotation,
+              position: data.data.position,
+              status: Status.MoveToCircle,
+              statusData: {
+                destination: state.statusData.destination
               }
             },
             actions: [{ type: ActionTypes.Move, data: { direction: MovementDirection.Forward } }]
@@ -339,24 +331,21 @@ export const bot: BotAPI = {
 
     rotatePlayerResponse: (
       data: SuccessfulRotatePlayerResponse | FailedRotatePlayerResponse,
-      state: BotState<State<Status.RotateToCircle | Status.RotateToNextCirclePoint>>
-    ): { state: BotState<State<Status.MoveToCircle | Status.MoveToNextCirclePoint | Status.Stop>>, actions: Action[] } => {
+      state: State<Status.RotateToCircle | Status.RotateToNextCirclePoint>
+    ): { state: State<Status.MoveToCircle | Status.MoveToNextCirclePoint | Status.Stop>, actions: Action[] } => {
       console.log(chalk.cyan('RotatePlayerResponse'))
       if (!data.success) {
         return {
           state: {
-            ...state,
-            bot: {
-              rotation: state.bot.rotation,
-              position: state.bot.position,
-              status: Status.Stop
-            }
+            rotation: state.rotation,
+            position: state.position,
+            status: Status.Stop
           },
           actions: []
         }
       }
 
-      if (state.bot.status === Status.RotateToCircle) {
+      if (state.status === Status.RotateToCircle) {
         const intersections = calculateIntersectionCircleLine(
           {
             center: {
@@ -366,38 +355,34 @@ export const bot: BotAPI = {
             radius: 100
           },
           {
-            point: state.bot.position,
-            slope: state.bot.statusData.rotationToCircleBorder
+            point: state.position,
+            slope: state.statusData.rotationToCircleBorder
           }
         )
-        const closestIntersectionPoint = findClosestIntersectionPoint(state.bot.position, intersections)
+        const closestIntersectionPoint = findClosestIntersectionPoint(state.position, intersections)
 
         const action: MoveAction = { type: ActionTypes.Move, data: { direction: MovementDirection.Forward } }
         return {
           state: {
-            ...state,
-            bot: {
-              ...state.bot,
-              status: Status.MoveToCircle,
-              statusData: {
-                destination: closestIntersectionPoint
-              }
+            position: state.position,
+            rotation: state.rotation,
+            status: Status.MoveToCircle,
+            statusData: {
+              destination: closestIntersectionPoint
             }
           },
           actions: [action]
         }
       }
 
-      if (state.bot.status === Status.RotateToNextCirclePoint) {
+      if (state.status === Status.RotateToNextCirclePoint) {
         return {
           state: {
-            ...state,
-            bot: {
-              ...state.bot,
-              status: Status.MoveToNextCirclePoint,
-              statusData: {
-                nextCirclePoint: state.bot.statusData.nextCirclePoint
-              }
+            position: state.position,
+            rotation: state.rotation,
+            status: Status.MoveToNextCirclePoint,
+            statusData: {
+              nextCirclePoint: state.statusData.nextCirclePoint
             }
           },
           actions: [{ type: ActionTypes.Move, data: { direction: MovementDirection.Forward } }]
@@ -407,28 +392,25 @@ export const bot: BotAPI = {
       throw new Error('unexpected status')
     },
 
-    radarScanNotification: (_scan: { players: { position: Position }[], shots: { position: Position }[], unknown: { position: Position }[] }, state: BotState<State<Status>>): { state: BotState<State<Status>>, actions: Action[] } => {
+    radarScanNotification: (_scan: { players: { position: Position }[], shots: { position: Position }[], unknown: { position: Position }[] }, state: State<Status>): { state: State<Status>, actions: Action[] } => {
       console.log(chalk.cyan('RadarScanNotification'))
       return { state, actions: [] }
     },
 
     startGameNotification: (
-      state: BotState<State<Status.WaitToStart>>
-    ): { state: BotState<State<Status.RotateToCircle>>, actions: Action[] } => {
+      state: State<Status.WaitToStart>
+    ): { state: State<Status.RotateToCircle>, actions: Action[] } => {
       console.log(chalk.cyan('StartGameNotification'))
-      const rotationToCircleBorder = findRotationToCircleCenter(state.bot.position, CIRCLE_CENTER)
+      const rotationToCircleBorder = findRotationToCircleCenter(state.position, CIRCLE_CENTER)
       const action: RotateAction = { type: ActionTypes.Rotate, data: { rotation: rotationToCircleBorder } }
 
       return {
         state: {
-          ...state,
-          bot: {
-            rotation: rotationToCircleBorder,
-            position: state.bot.position,
-            status: Status.RotateToCircle,
-            statusData: {
-              rotationToCircleBorder
-            }
+          rotation: rotationToCircleBorder,
+          position: state.position,
+          status: Status.RotateToCircle,
+          statusData: {
+            rotationToCircleBorder
           }
         },
         actions: [action]
@@ -436,22 +418,19 @@ export const bot: BotAPI = {
     },
 
     joinGameNotification: (
-      state: BotState<State<Status.WaitToStart>>
-    ): { state: BotState<State<Status.RotateToCircle>>, actions: Action[] } => {
+      state: State<Status.WaitToStart>
+    ): { state: State<Status.RotateToCircle>, actions: Action[] } => {
       console.log(chalk.cyan('JoinGameNotification'))
-      const rotationToCircleBorder = findRotationToCircleCenter(state.bot.position, CIRCLE_CENTER)
+      const rotationToCircleBorder = findRotationToCircleCenter(state.position, CIRCLE_CENTER)
       const action: RotateAction = { type: ActionTypes.Rotate, data: { rotation: rotationToCircleBorder } }
 
       return {
         state: {
-          ...state,
-          bot: {
-            rotation: rotationToCircleBorder,
-            position: state.bot.position,
-            status: Status.RotateToCircle,
-            statusData: {
-              rotationToCircleBorder
-            }
+          rotation: rotationToCircleBorder,
+          position: state.position,
+          status: Status.RotateToCircle,
+          statusData: {
+            rotationToCircleBorder
           }
         },
         actions: [action]

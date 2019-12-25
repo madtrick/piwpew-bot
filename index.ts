@@ -84,36 +84,56 @@ function deployMine (ws: WebSocket): void {
   ws.send(JSON.stringify(data))
 }
 
-function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot: BotAPI): BotState<any> {
+function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot: BotAPI<any>): BotState<any> {
   if (isRegisterPlayerResponseMessage(message)) {
     if (!message.success) {
-      const { state: newState } = bot.handlers.registerPlayerResponse({ success: message.success, data: 'Failed player register' }, state)
+      const { state: newBotState } = bot.handlers.registerPlayerResponse(
+        { success: message.success, data: 'Failed player register' },
+        state.bot
+      )
 
-      return newState
+      state.bot = newBotState
+
+      return state
     } else {
       if (typeof message.details !== 'object') {
         throw new Error('invalid response message')
       }
 
       const { position, rotation } = message.details
-      const { state: newState } = bot.handlers.registerPlayerResponse({ success: true, data: { position, rotation } }, state)
+      const { state: newBotState } = bot.handlers.registerPlayerResponse(
+        { success: true, data: { position, rotation } },
+        state.bot
+      )
 
-      return newState
+      state.bot = newBotState
+
+      return state
     }
   }
 
   if (isMovePlayerResponseMessage(message)) {
     if (!message.success) {
-      const { state: newState } = bot.handlers.movePlayerResponse({ success: message.success, data: 'Failed to move player' }, state)
+      const { state: newBotState } = bot.handlers.movePlayerResponse(
+        { success: message.success, data: 'Failed to move player' },
+        state.bot
+      )
 
-      return newState
+      state.bot = newBotState
+
+      return state
     } else {
       if (typeof message.details !== 'object') {
         throw new Error('invalid response message')
       }
 
       const { position } = message.details
-      const { state: newState, actions: [action] } = bot.handlers.movePlayerResponse({ success: true, data: { position } }, state)
+      const { state: newBotState, actions: [action] } = bot.handlers.movePlayerResponse(
+        { success: true, data: { position } },
+        state.bot
+      )
+
+      state.bot = newBotState
 
       if (action && action.type === ActionTypes.Move) {
         move(ws, action.data.direction)
@@ -123,18 +143,23 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
         rotate(ws, action.data.rotation)
       }
 
-      return newState
+      return state
     }
   }
 
   if (isRotatePlayerResponseMessage(message)) {
-    const { state: newState, actions: [action] } = bot.handlers.rotatePlayerResponse({ success: message.success }, state)
+    const { state: newBotState, actions: [action] } = bot.handlers.rotatePlayerResponse(
+      { success: message.success },
+      state.bot
+    )
+
+    state.bot = newBotState
 
     if (action && action.type === ActionTypes.Move) {
       move(ws, action.data.direction)
     }
 
-    return newState
+    return state
   }
 
   if (isRadarScanNotificationMessage(message)) {
@@ -143,10 +168,12 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
     }
 
     const { data } = message
-    const { state: newState, actions: [action] } = bot.handlers.radarScanNotification(data, state)
+    const { state: newBotState, actions: [action] } = bot.handlers.radarScanNotification(data, state.bot)
+
+    state.bot = newBotState
 
     if (!action) {
-      return newState
+      return state
     }
 
     if (action.type === ActionTypes.Move) {
@@ -165,11 +192,13 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
       deployMine(ws)
     }
 
-    return newState
+    return state
   }
 
   if (isStartGameNotificationMessage(message)) {
-    const { state: newState, actions: [action] } = bot.handlers.startGameNotification(state)
+    const { state: newBotState, actions: [action] } = bot.handlers.startGameNotification(state.bot)
+
+    state.bot = newBotState
 
     if (action && action.type === ActionTypes.Move) {
       move(ws, action.data.direction)
@@ -179,11 +208,13 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
       rotate(ws, action.data.rotation)
     }
 
-    return newState
+    return state
   }
 
   if (isJoinGameNotificationMessage(message)) {
-    const { state: newState, actions: [action] } = bot.handlers.joinGameNotification(state)
+    const { state: newBotState, actions: [action] } = bot.handlers.joinGameNotification(state.bot)
+
+    state.bot = newBotState
 
     if (action && action.type === ActionTypes.Move) {
       move(ws, action.data.direction)
@@ -193,7 +224,7 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
       rotate(ws, action.data.rotation)
     }
 
-    return newState
+    return state
   }
 
   console.log('unexpected message')
@@ -222,7 +253,7 @@ ws.on('open', function open (): void {
     bot: {}
   }
 
-  let botImport: Promise<{ bot: BotAPI}>
+  let botImport: Promise<{ bot: BotAPI<any>}>
   if (argv.p) {
     botImport = import(argv.p as string)
   } else {

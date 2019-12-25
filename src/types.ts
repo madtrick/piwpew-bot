@@ -56,14 +56,35 @@ export interface BotState<T> {
   bot: T
 }
 
-export interface BotAPI {
+export interface BotAPI<S> {
   handlers: {
-    radarScanNotification: (scan: { players: { position: Position }[], shots: { position: Position }[], unknown: { position: Position }[] }, state: BotState<any>) => { state: BotState<any>, actions: Action[] }
-    registerPlayerResponse: (data: SuccessfulRegisterPlayerResponse | FailedRegisterPlayerResponse, state: BotState<any>) => { state: BotState<any>, actions: Action[] }
-    rotatePlayerResponse: (success: SuccessfulRotatePlayerResponse | FailedRotatePlayerResponse, state: BotState<any>) => { state: BotState<any>, actions: Action[] }
-    movePlayerResponse: (data: SuccessfulMovePlayerResponse | FailedMovePlayerResponse, state: BotState<any>) => { state: BotState<any>, actions: Action[] }
-    startGameNotification: (state: BotState<any>) => { state: BotState<any>, actions: Action[] }
-    joinGameNotification: (state: BotState<any>) => { state: BotState<any>, actions: Action[] }
+    radarScanNotification: (
+      scan: {
+        players: { position: Position }[],
+        shots: { position: Position }[],
+        unknown: { position: Position }[]
+      },
+      state: S
+    ) => { state: S, actions: Action[] }
+
+    registerPlayerResponse: (
+      data: SuccessfulRegisterPlayerResponse | FailedRegisterPlayerResponse,
+      state: S
+    ) => { state: S, actions: Action[] }
+
+    rotatePlayerResponse: (
+      data: SuccessfulRotatePlayerResponse | FailedRotatePlayerResponse,
+      state: S
+    ) => { state: S, actions: Action[] }
+
+    movePlayerResponse: (
+      data: SuccessfulMovePlayerResponse | FailedMovePlayerResponse,
+      state: S
+    ) => { state: S, actions: Action[] }
+
+    startGameNotification: (state: S) => { state: S, actions: Action[] }
+
+    joinGameNotification: (state: S) => { state: S, actions: Action[] }
   }
 }
 
