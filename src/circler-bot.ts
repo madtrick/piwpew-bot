@@ -204,6 +204,14 @@ function findRotationToCircleCenter (botPosition: Position, circleCenter: Positi
   }
 }
 
+function rotateAction (rotation: Rotation): RotateAction {
+  return { type: ActionTypes.Rotate, data: { rotation } }
+}
+
+function moveForwardAction (): MoveAction {
+  return { type: ActionTypes.Move, data: { direction: MovementDirection.Forward } }
+}
+
 /*
  * I would like to specify the type of the bot
  * to be BotAPI<State<Status>> to say that the api methods
@@ -246,6 +254,7 @@ export const bot: BotAPI<any> = {
       if (!data.success) {
         return {
           state: {
+            ...state,
             rotation: state.rotation,
             position: state.position,
             status: Status.Stop
@@ -273,7 +282,7 @@ export const bot: BotAPI<any> = {
                 nextCirclePoint: rotatedPoint
               }
             },
-            actions: [{ type: ActionTypes.Rotate, data: { rotation: rotationToNextCirclePoint } }]
+            actions: [rotateAction(rotationToNextCirclePoint)]
           }
         } else {
           return {
@@ -285,7 +294,7 @@ export const bot: BotAPI<any> = {
                 nextCirclePoint: state.statusData.nextCirclePoint
               }
             },
-            actions: [{ type: ActionTypes.Move, data: { direction: MovementDirection.Forward } }]
+            actions: [moveForwardAction()]
           }
         }
       }
@@ -309,7 +318,7 @@ export const bot: BotAPI<any> = {
                 nextCirclePoint: rotatedPoint
               }
             },
-            actions: [{ type: ActionTypes.Rotate, data: { rotation: rotationToNextCirclePoint } }]
+            actions: [rotateAction(rotationToNextCirclePoint)]
           }
         } else {
           return {
@@ -321,7 +330,7 @@ export const bot: BotAPI<any> = {
                 destination: state.statusData.destination
               }
             },
-            actions: [{ type: ActionTypes.Move, data: { direction: MovementDirection.Forward } }]
+            actions: [moveForwardAction()]
           }
         }
       }
@@ -361,7 +370,6 @@ export const bot: BotAPI<any> = {
         )
         const closestIntersectionPoint = findClosestIntersectionPoint(state.position, intersections)
 
-        const action: MoveAction = { type: ActionTypes.Move, data: { direction: MovementDirection.Forward } }
         return {
           state: {
             position: state.position,
@@ -371,7 +379,7 @@ export const bot: BotAPI<any> = {
               destination: closestIntersectionPoint
             }
           },
-          actions: [action]
+          actions: [moveForwardAction()]
         }
       }
 
@@ -385,7 +393,7 @@ export const bot: BotAPI<any> = {
               nextCirclePoint: state.statusData.nextCirclePoint
             }
           },
-          actions: [{ type: ActionTypes.Move, data: { direction: MovementDirection.Forward } }]
+          actions: [moveForwardAction()]
         }
       }
 
@@ -402,7 +410,6 @@ export const bot: BotAPI<any> = {
     ): { state: State<Status.RotateToCircle>, actions: Action[] } => {
       console.log(chalk.cyan('StartGameNotification'))
       const rotationToCircleBorder = findRotationToCircleCenter(state.position, CIRCLE_CENTER)
-      const action: RotateAction = { type: ActionTypes.Rotate, data: { rotation: rotationToCircleBorder } }
 
       return {
         state: {
@@ -413,7 +420,7 @@ export const bot: BotAPI<any> = {
             rotationToCircleBorder
           }
         },
-        actions: [action]
+        actions: [rotateAction(rotationToCircleBorder)]
       }
     },
 
@@ -422,7 +429,6 @@ export const bot: BotAPI<any> = {
     ): { state: State<Status.RotateToCircle>, actions: Action[] } => {
       console.log(chalk.cyan('JoinGameNotification'))
       const rotationToCircleBorder = findRotationToCircleCenter(state.position, CIRCLE_CENTER)
-      const action: RotateAction = { type: ActionTypes.Rotate, data: { rotation: rotationToCircleBorder } }
 
       return {
         state: {
@@ -433,7 +439,7 @@ export const bot: BotAPI<any> = {
             rotationToCircleBorder
           }
         },
-        actions: [action]
+        actions: [rotateAction(rotationToCircleBorder)]
       }
     }
   }
