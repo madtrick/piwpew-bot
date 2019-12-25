@@ -84,7 +84,7 @@ function deployMine (ws: WebSocket): void {
   ws.send(JSON.stringify(data))
 }
 
-function dispatchMessage (ws: WebSocket, message: any, state: BotState, bot: BotAPI): BotState {
+function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot: BotAPI): BotState<any> {
   if (isRegisterPlayerResponseMessage(message)) {
     if (!message.success) {
       const { state: newState } = bot.handlers.registerPlayerResponse({ success: message.success, data: 'Failed player register' }, state)
@@ -113,14 +113,26 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState, bot: Bot
       }
 
       const { position } = message.details
-      const { state: newState } = bot.handlers.movePlayerResponse({ success: true, data: { position } }, state)
+      const { state: newState, actions: [action] } = bot.handlers.movePlayerResponse({ success: true, data: { position } }, state)
+
+      if (action && action.type === ActionTypes.Move) {
+        move(ws, action.data.direction)
+      }
+
+      if (action && action.type === ActionTypes.Rotate) {
+        rotate(ws, action.data.rotation)
+      }
 
       return newState
     }
   }
 
   if (isRotatePlayerResponseMessage(message)) {
-    const { state: newState } = bot.handlers.rotatePlayerResponse({ success: message.success }, state)
+    const { state: newState, actions: [action] } = bot.handlers.rotatePlayerResponse({ success: message.success }, state)
+
+    if (action && action.type === ActionTypes.Move) {
+      move(ws, action.data.direction)
+    }
 
     return newState
   }
@@ -159,8 +171,12 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState, bot: Bot
   if (isStartGameNotificationMessage(message)) {
     const { state: newState, actions: [action] } = bot.handlers.startGameNotification(state)
 
-    if (action.type === ActionTypes.Move) {
+    if (action && action.type === ActionTypes.Move) {
       move(ws, action.data.direction)
+    }
+
+    if (action && action.type === ActionTypes.Rotate) {
+      rotate(ws, action.data.rotation)
     }
 
     return newState
@@ -171,6 +187,10 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState, bot: Bot
 
     if (action && action.type === ActionTypes.Move) {
       move(ws, action.data.direction)
+    }
+
+    if (action && action.type === ActionTypes.Rotate) {
+      rotate(ws, action.data.rotation)
     }
 
     return newState
@@ -195,7 +215,7 @@ ws.on('open', function open (): void {
 
   ws.send(JSON.stringify(message), { mask: true })
 
-  let state: BotState = {
+  let state: BotState<any> = {
     // TODO fix the typings here
     tracker: argv.t as boolean,
     shooter: argv.s as boolean,

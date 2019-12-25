@@ -50,20 +50,20 @@ export interface DeployMineAction {
 
 export type Action = RotateAction | MoveAction | ShootAction | DeployMineAction
 
-export interface BotState {
+export interface BotState<T> {
   tracker: boolean
   shooter: boolean
-  bot: any
+  bot: T
 }
 
 export interface BotAPI {
   handlers: {
-    radarScanNotification: (scan: { players: { position: Position }[], shots: { position: Position }[], unknown: { position: Position }[] }, state: BotState) => { state: BotState, actions: Action[] }
-    registerPlayerResponse: (data: SuccessfulRegisterPlayerResponse | FailedRegisterPlayerResponse, state: BotState) => { state: BotState, actions: Action[] }
-    rotatePlayerResponse: (success: SuccessfulRotatePlayerResponse | FailedRotatePlayerResponse, state: BotState) => { state: BotState, actions: Action[] }
-    movePlayerResponse: (data: SuccessfulMovePlayerResponse | FailedMovePlayerResponse, state: BotState) => { state: BotState, actions: Action[] }
-    startGameNotification: (state: BotState) => { state: BotState, actions: Action[] }
-    joinGameNotification: (state: BotState) => { state: BotState, actions: Action[] }
+    radarScanNotification: (scan: { players: { position: Position }[], shots: { position: Position }[], unknown: { position: Position }[] }, state: BotState<any>) => { state: BotState<any>, actions: Action[] }
+    registerPlayerResponse: (data: SuccessfulRegisterPlayerResponse | FailedRegisterPlayerResponse, state: BotState<any>) => { state: BotState<any>, actions: Action[] }
+    rotatePlayerResponse: (success: SuccessfulRotatePlayerResponse | FailedRotatePlayerResponse, state: BotState<any>) => { state: BotState<any>, actions: Action[] }
+    movePlayerResponse: (data: SuccessfulMovePlayerResponse | FailedMovePlayerResponse, state: BotState<any>) => { state: BotState<any>, actions: Action[] }
+    startGameNotification: (state: BotState<any>) => { state: BotState<any>, actions: Action[] }
+    joinGameNotification: (state: BotState<any>) => { state: BotState<any>, actions: Action[] }
   }
 }
 

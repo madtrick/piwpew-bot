@@ -115,7 +115,6 @@ export interface RadarScan {
 }
 
 export function isRegisterPlayerResponseMessage (message: any): message is RegisterPlayerResponseMessage {
-  console.log(message)
   const { type, id } = message
 
   return type === MessageTypes.Response && id === ResponseTypes.RegisterPlayer
