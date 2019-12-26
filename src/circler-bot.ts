@@ -268,9 +268,9 @@ export const bot: BotAPI<any> = {
         const yDelta = Math.abs(data.data.position.y - state.statusData.nextCirclePoint.y)
 
         if (xDelta < 5 && yDelta < 5) {
-          const translation = 0.01
-          const angleB = calculateAngleBetweenPoints({ x: 0, y: 0 }, data.data.position)
-          const rotatedPoint = withOriginBasis(translatePoint(withCircleBasis(data.data.position), (angleB + translation) % 360))
+          const translation = 1
+          const pointWithCircleAsOrigin = withCircleBasis(data.data.position)
+          const rotatedPoint = withOriginBasis(translatePoint(pointWithCircleAsOrigin, translation))
           const rotationToNextCirclePoint = calculateAngleBetweenPoints(data.data.position, rotatedPoint)
 
           return {
@@ -304,9 +304,9 @@ export const bot: BotAPI<any> = {
         const yDelta = Math.abs(data.data.position.y - state.statusData.destination.y)
 
         if (xDelta < 5 && yDelta < 5) {
-          const translation = 0.01
-          const angleB = calculateAngleBetweenPoints({ x: 0, y: 0 }, data.data.position)
-          const rotatedPoint = withOriginBasis(translatePoint(withCircleBasis(data.data.position), (angleB + translation) % 360))
+          const translation = 1
+          const pointWithCircleAsOrigin = withCircleBasis(data.data.position)
+          const rotatedPoint = withOriginBasis(translatePoint(pointWithCircleAsOrigin, translation))
           const rotationToNextCirclePoint = calculateAngleBetweenPoints(data.data.position, rotatedPoint)
 
           return {
