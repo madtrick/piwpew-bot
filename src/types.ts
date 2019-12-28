@@ -1,23 +1,12 @@
 import { IPlanner } from './planner'
+import { Action } from './actions'
 
 export interface Position {
   x: number
   y: number
 }
 
-export enum ActionTypes {
-  Rotate,
-  Shoot,
-  Move,
-  DeployMine,
-  Exit
-}
-
 export type Rotation = number
-export enum MovementDirection {
-  Forward = 'forward'
-}
-
 export interface Bot {
   planner: IPlanner
   // TODO do I need this property in the planner. Isn't it
@@ -25,30 +14,6 @@ export interface Bot {
   location: Position
   rotation: Rotation
 }
-
-export interface RotateAction {
-  type: ActionTypes.Rotate
-  data: {
-    rotation: Rotation
-  }
-}
-
-export interface MoveAction {
-  type: ActionTypes.Move
-  data: {
-    direction: MovementDirection
-  }
-}
-
-export interface ShootAction {
-  type: ActionTypes.Shoot
-}
-
-export interface DeployMineAction {
-  type: ActionTypes.DeployMine
-}
-
-export type Action = RotateAction | MoveAction | ShootAction | DeployMineAction
 
 export interface BotState<T> {
   tracker: boolean
@@ -58,7 +23,7 @@ export interface BotState<T> {
 
 export interface BotAPI<S> {
   handlers: {
-    radarScanNotification: (
+    radarScanNotification?: (
       scan: {
         players: { position: Position }[],
         shots: { position: Position }[],
@@ -67,24 +32,29 @@ export interface BotAPI<S> {
       state: S
     ) => { state: S, actions: Action[] }
 
-    registerPlayerResponse: (
+    registerPlayerResponse?: (
       data: SuccessfulRegisterPlayerResponse | FailedRegisterPlayerResponse,
       state: S
     ) => { state: S, actions: Action[] }
 
-    rotatePlayerResponse: (
+    rotatePlayerResponse?: (
       data: SuccessfulRotatePlayerResponse | FailedRotatePlayerResponse,
       state: S
     ) => { state: S, actions: Action[] }
 
-    movePlayerResponse: (
+    movePlayerResponse?: (
       data: SuccessfulMovePlayerResponse | FailedMovePlayerResponse,
       state: S
     ) => { state: S, actions: Action[] }
 
-    startGameNotification: (state: S) => { state: S, actions: Action[] }
+    shootResponse?: (
+      data: SuccessfulShootResponse | FailedShootResponse,
+      state: S
+    ) => { state: S, actions: Action[] }
 
-    joinGameNotification: (state: S) => { state: S, actions: Action[] }
+    startGameNotification?: (state: S) => { state: S, actions: Action[] }
+
+    joinGameNotification?: (state: S) => { state: S, actions: Action[] }
   }
 }
 
@@ -118,5 +88,13 @@ export interface SuccessfulRotatePlayerResponse {
 }
 
 export interface FailedRotatePlayerResponse {
+  success: false
+}
+
+export interface SuccessfulShootResponse {
+  success: true
+}
+
+export interface FailedShootResponse {
   success: false
 }

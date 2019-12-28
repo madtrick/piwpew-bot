@@ -1,4 +1,5 @@
-import { MovementDirection, Rotation, Position } from './types'
+import { Rotation, Position } from './types'
+import { MovementDirection } from './actions'
 
 export enum MessageTypes {
   Request = 'Request',
@@ -94,6 +95,12 @@ export interface ShootRequestMessage {
   id: RequestTypes.Shoot
 }
 
+export interface ShootResponseMessage {
+  type: MessageTypes.Response
+  id: 'Shoot'
+  success: boolean
+}
+
 export interface DeployMineRequestMessage {
   type: MessageTypes.Request
   id: RequestTypes.DeployMine
@@ -148,4 +155,10 @@ export function isJoinGameNotificationMessage (message: any): message is JoinGam
   const { type, id } = message
 
   return type === MessageTypes.Notification && id === NotificationTypes.JoinGame
+}
+
+export function isShootResponseMessage (message: any): message is ShootResponseMessage {
+  const { type, id } = message
+
+  return type === MessageTypes.Response && id === 'Shoot'
 }

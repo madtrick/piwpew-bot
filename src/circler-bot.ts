@@ -9,13 +9,14 @@ import {
   SuccessfulRotatePlayerResponse,
   FailedRotatePlayerResponse,
   Position,
-  Rotation,
-  Action,
-  ActionTypes,
-  RotateAction,
-  MoveAction,
-  MovementDirection
+  Rotation
 } from './types'
+import {
+  Action,
+  rotateAction,
+  moveForwardAction
+} from './actions'
+import { calculateAngleBetweenPoints } from './utils'
 
 enum Status {
   Unregistered,
@@ -117,72 +118,6 @@ function findClosestIntersectionPoint (from: Position, intersectionPoints: Posit
 }
 
 // pointA is like the origin of coordinates when calculating the angle
-function calculateAngleBetweenPoints (pointA: Position, pointB: Position): number {
-  console.log('calculateAngleBetweenPoints', pointA, pointB)
-  // TODO remove that 0 default
-  let rotationToPointB: number = 0
-
-  /*
-   *
-   *                          +
-   *        POINT B           |            POINT B
-   *                          |
-   *                          |
-   *        B.x lt A.x        |            B.x gt A.x
-   *        B.y gt A.y        |            B.y gt A.y
-   *                          |
-   *                          |
-   *                          |
-   *                          |
-   * +----------------------POINT A---------------------+
-   *                          |
-   *                          |
-   *                          |
-   *        B.x lt A.x        |            B.x gt A.x
-   *        B.y lt A.y        |            B.y lt A.y
-   *                          |
-   *                          |
-   *                          |
-   *        POINT B           |            POINT B
-   *                          |
-   *                          +
-   *
-   */
-
-  if (pointA.x > pointB.x) {
-    if (pointA.y > pointB.y) {
-      console.log('A')
-      const slopeBetweenPoints = Math.abs((pointA.y - pointB.y) / (pointA.x - pointB.x))
-      rotationToPointB = Math.atan(slopeBetweenPoints) * 180 / Math.PI + 180
-    } else if (pointA.y < pointB.y) {
-      console.log('B')
-      const slopeBetweenPoints = Math.abs((pointA.x - pointB.x) / (pointA.y - pointB.y))
-      rotationToPointB = Math.atan(slopeBetweenPoints) * 180 / Math.PI + 90
-    } else {
-      rotationToPointB = 0
-    }
-  } else if (pointA.x < pointB.x) {
-    if (pointA.y > pointB.y) {
-      console.log('C')
-      const slopeBetweenPoints = Math.abs((pointA.x - pointB.x) / (pointA.y - pointB.y))
-      rotationToPointB = Math.atan(slopeBetweenPoints) * 180 / Math.PI + 270
-    } else if (pointA.y < pointB.y) {
-      console.log('D')
-      const slopeBetweenPoints = Math.abs((pointA.y - pointB.y) / (pointA.x - pointB.x))
-      rotationToPointB = Math.atan(slopeBetweenPoints) * 180 / Math.PI
-    } else {
-      rotationToPointB = 0
-    }
-  } else if (pointA.x === pointB.x) {
-    if (pointA.y > pointB.y) {
-      rotationToPointB = 90
-    } else {
-      rotationToPointB = 180
-    }
-  }
-
-  return rotationToPointB
-}
 
 const CIRCLE_RADIUS = 100
 const CIRCLE_CENTER = { x: 200, y: 200 }
@@ -202,14 +137,6 @@ function findRotationToCircleCenter (botPosition: Position, circleCenter: Positi
 
     return rotationToCircleBorder
   }
-}
-
-function rotateAction (rotation: Rotation): RotateAction {
-  return { type: ActionTypes.Rotate, data: { rotation } }
-}
-
-function moveForwardAction (): MoveAction {
-  return { type: ActionTypes.Move, data: { direction: MovementDirection.Forward } }
 }
 
 /*

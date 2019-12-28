@@ -6,10 +6,9 @@ import yargs from 'yargs'
 import {
   BotAPI,
   BotState,
-  ActionTypes,
-  Rotation,
-  MovementDirection
+  Rotation
 } from './src/types'
+import { ActionTypes, MovementDirection } from './src/actions'
 
 import {
   MessageTypes,
@@ -24,7 +23,8 @@ import {
   isRotatePlayerResponseMessage,
   isRadarScanNotificationMessage,
   isStartGameNotificationMessage,
-  isJoinGameNotificationMessage
+  isJoinGameNotificationMessage,
+  isShootResponseMessage
 } from './src/messages'
 
 const ws = new WebSocket('ws://localhost:8889')
@@ -86,6 +86,10 @@ function deployMine (ws: WebSocket): void {
 
 function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot: BotAPI<any>): BotState<any> {
   if (isRegisterPlayerResponseMessage(message)) {
+    if (!bot.handlers.registerPlayerResponse) {
+      return state
+    }
+
     if (!message.success) {
       const { state: newBotState } = bot.handlers.registerPlayerResponse(
         { success: message.success, data: 'Failed player register' },
@@ -113,6 +117,10 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
   }
 
   if (isMovePlayerResponseMessage(message)) {
+    if (!bot.handlers.movePlayerResponse) {
+      return state
+    }
+
     if (!message.success) {
       const { state: newBotState } = bot.handlers.movePlayerResponse(
         { success: message.success, data: 'Failed to move player' },
@@ -148,6 +156,10 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
   }
 
   if (isRotatePlayerResponseMessage(message)) {
+    if (!bot.handlers.rotatePlayerResponse) {
+      return state
+    }
+
     const { state: newBotState, actions: [action] } = bot.handlers.rotatePlayerResponse(
       { success: message.success },
       state.bot
@@ -159,10 +171,41 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
       move(ws, action.data.direction)
     }
 
+    if (action && action.type === ActionTypes.Shoot) {
+      shoot(ws)
+    }
+
+    return state
+  }
+
+  if (isShootResponseMessage(message)) {
+    if (!bot.handlers.shootResponse) {
+      return state
+    }
+
+    const { state: newBotState, actions: [action] } = bot.handlers.shootResponse(
+      { success: message.success },
+      state.bot
+    )
+
+    state.bot = newBotState
+
+    if (action && action.type === ActionTypes.Rotate) {
+      rotate(ws, action.data.rotation)
+    }
+
+    if (action && action.type === ActionTypes.Shoot) {
+      shoot(ws)
+    }
+
     return state
   }
 
   if (isRadarScanNotificationMessage(message)) {
+    if (!bot.handlers.radarScanNotification) {
+      return state
+    }
+
     if (typeof message.data !== 'object') {
       throw new Error('invalid message response')
     }
@@ -196,6 +239,10 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
   }
 
   if (isStartGameNotificationMessage(message)) {
+    if (!bot.handlers.startGameNotification) {
+      return state
+    }
+
     const { state: newBotState, actions: [action] } = bot.handlers.startGameNotification(state.bot)
 
     state.bot = newBotState
@@ -212,6 +259,10 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
   }
 
   if (isJoinGameNotificationMessage(message)) {
+    if (!bot.handlers.joinGameNotification) {
+      return state
+    }
+
     const { state: newBotState, actions: [action] } = bot.handlers.joinGameNotification(state.bot)
 
     state.bot = newBotState
