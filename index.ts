@@ -1,6 +1,5 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import WebSocket from 'ws'
 import * as _ from 'lodash'
 import yargs from 'yargs'
 import {
@@ -9,6 +8,7 @@ import {
   Rotation
 } from './src/types'
 import { ActionTypes, MovementDirection } from './src/actions'
+import { Channel, createLogChannel, WebSocketChannel } from './src/channel'
 
 import {
   MessageTypes,
@@ -27,12 +27,20 @@ import {
   isShootResponseMessage
 } from './src/messages'
 
-const ws = new WebSocket('ws://localhost:8889')
 const argv = yargs.demand(['i']).argv
+let channel: Channel
+
+if (argv.f) {
+  // TODO fix the argv typing
+  channel = createLogChannel({ path: argv.f as string })
+} else {
+  channel = new WebSocketChannel('ws://localhost:8889')
+}
+
 const playerId = argv.i as string
 const messagesLogPath = path.join(__dirname, argv.i + '-messages.log')
 
-function move (ws: WebSocket, direction: MovementDirection): void {
+function move (channel: Channel, direction: MovementDirection): void {
   const data: MovePlayerRequestMessage = {
     type: MessageTypes.Request,
     id: RequestTypes.MovePlayer,
@@ -45,10 +53,10 @@ function move (ws: WebSocket, direction: MovementDirection): void {
 
   writeMessagesToFile('send', data)
 
-  ws.send(JSON.stringify(data))
+  channel.send(JSON.stringify(data))
 }
 
-function rotate (ws: WebSocket, rotation: Rotation): void {
+function rotate (channel: Channel, rotation: Rotation): void {
   const data: RotatePlayerRequestMessage = {
     type: MessageTypes.Request,
     id: RequestTypes.RotatePlayer,
@@ -59,10 +67,10 @@ function rotate (ws: WebSocket, rotation: Rotation): void {
 
   writeMessagesToFile('send', data)
 
-  ws.send(JSON.stringify(data))
+  channel.send(JSON.stringify(data))
 }
 
-function shoot (ws: WebSocket): void {
+function shoot (channel: Channel): void {
   const data: ShootRequestMessage = {
     type: MessageTypes.Request,
     id: RequestTypes.Shoot
@@ -70,10 +78,10 @@ function shoot (ws: WebSocket): void {
 
   writeMessagesToFile('send', data)
 
-  ws.send(JSON.stringify(data))
+  channel.send(JSON.stringify(data))
 }
 
-function deployMine (ws: WebSocket): void {
+function deployMine (channel: Channel): void {
   const data: DeployMineRequestMessage = {
     type: MessageTypes.Request,
     id: RequestTypes.DeployMine
@@ -81,10 +89,10 @@ function deployMine (ws: WebSocket): void {
 
   writeMessagesToFile('send', data)
 
-  ws.send(JSON.stringify(data))
+  channel.send(JSON.stringify(data))
 }
 
-function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot: BotAPI<any>): BotState<any> {
+function dispatchMessage (channel: Channel, message: any, state: BotState<any>, bot: BotAPI<any>): BotState<any> {
   if (isRegisterPlayerResponseMessage(message)) {
     if (!bot.handlers.registerPlayerResponse) {
       return state
@@ -144,11 +152,11 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
       state.bot = newBotState
 
       if (action && action.type === ActionTypes.Move) {
-        move(ws, action.data.direction)
+        move(channel, action.data.direction)
       }
 
       if (action && action.type === ActionTypes.Rotate) {
-        rotate(ws, action.data.rotation)
+        rotate(channel, action.data.rotation)
       }
 
       return state
@@ -168,11 +176,11 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
     state.bot = newBotState
 
     if (action && action.type === ActionTypes.Move) {
-      move(ws, action.data.direction)
+      move(channel, action.data.direction)
     }
 
     if (action && action.type === ActionTypes.Shoot) {
-      shoot(ws)
+      shoot(channel)
     }
 
     return state
@@ -191,11 +199,11 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
     state.bot = newBotState
 
     if (action && action.type === ActionTypes.Rotate) {
-      rotate(ws, action.data.rotation)
+      rotate(channel, action.data.rotation)
     }
 
     if (action && action.type === ActionTypes.Shoot) {
-      shoot(ws)
+      shoot(channel)
     }
 
     return state
@@ -211,7 +219,13 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
     }
 
     const { data } = message
+    console.dir(data.shots, { depth: null, colors: true })
+    console.log('STATE PRE')
+    console.dir(state.bot, { depth: null, colors: true })
     const { state: newBotState, actions: [action] } = bot.handlers.radarScanNotification(data, state.bot)
+    console.dir(action, { depth: null, colors: true })
+    console.log('STATE POST')
+    console.dir(newBotState, { depth: null, colors: true })
 
     state.bot = newBotState
 
@@ -220,19 +234,19 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
     }
 
     if (action.type === ActionTypes.Move) {
-      move(ws, action.data.direction)
+      move(channel, action.data.direction)
     }
 
     if (action.type === ActionTypes.Rotate) {
-      rotate(ws, action.data.rotation)
+      rotate(channel, action.data.rotation)
     }
 
     if (action.type === ActionTypes.Shoot) {
-      shoot(ws)
+      shoot(channel)
     }
 
     if (action.type === ActionTypes.DeployMine) {
-      deployMine(ws)
+      deployMine(channel)
     }
 
     return state
@@ -248,11 +262,11 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
     state.bot = newBotState
 
     if (action && action.type === ActionTypes.Move) {
-      move(ws, action.data.direction)
+      move(channel, action.data.direction)
     }
 
     if (action && action.type === ActionTypes.Rotate) {
-      rotate(ws, action.data.rotation)
+      rotate(channel, action.data.rotation)
     }
 
     return state
@@ -268,11 +282,11 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
     state.bot = newBotState
 
     if (action && action.type === ActionTypes.Move) {
-      move(ws, action.data.direction)
+      move(channel, action.data.direction)
     }
 
     if (action && action.type === ActionTypes.Rotate) {
-      rotate(ws, action.data.rotation)
+      rotate(channel, action.data.rotation)
     }
 
     return state
@@ -284,25 +298,8 @@ function dispatchMessage (ws: WebSocket, message: any, state: BotState<any>, bot
   return state
 }
 
-ws.on('open', function open (): void {
+channel.on('open', function open (): void {
   truncateMessagesFile()
-
-  const message: RegisterPlayerRequestMessage = {
-    type: MessageTypes.Request,
-    id: RequestTypes.RegisterPlayer,
-    data: {
-      id: playerId
-    }
-  }
-
-  ws.send(JSON.stringify(message), { mask: true })
-
-  let state: BotState<any> = {
-    // TODO fix the typings here
-    tracker: argv.t as boolean,
-    shooter: argv.s as boolean,
-    bot: {}
-  }
 
   let botImport: Promise<{ bot: BotAPI<any>}>
   if (argv.p) {
@@ -312,16 +309,36 @@ ws.on('open', function open (): void {
   }
 
   botImport.then(({ bot }) => {
-    ws.on('message', function handleMessage (json: string): void {
+    let state: BotState<any> = {
+      // TODO fix the typings here
+      tracker: argv.t as boolean,
+      shooter: argv.s as boolean,
+      bot: {}
+    }
+
+    channel.on('message', function handleMessage (json: string): void {
       const message = JSON.parse(json)
+      console.log('>>>')
 
       writeMessagesToFile('recv', message)
-      state = dispatchMessage(ws, message, state, bot)
+      state = dispatchMessage(channel, message, state, bot)
     })
+
+    const message: RegisterPlayerRequestMessage = {
+      type: MessageTypes.Request,
+      id: RequestTypes.RegisterPlayer,
+      data: {
+        id: playerId
+      }
+    }
+
+    writeMessagesToFile('send', message)
+    channel.send(JSON.stringify(message))
+
   })
 })
 
-ws.on('close', function close (): void {
+channel.on('close', function close (): void {
   console.log('Connection closed')
   process.exit(0)
 })
