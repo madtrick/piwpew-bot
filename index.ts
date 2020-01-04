@@ -219,13 +219,7 @@ function dispatchMessage (channel: Channel, message: any, state: BotState<any>, 
     }
 
     const { data } = message
-    console.dir(data.shots, { depth: null, colors: true })
-    console.log('STATE PRE')
-    console.dir(state.bot, { depth: null, colors: true })
     const { state: newBotState, actions: [action] } = bot.handlers.radarScanNotification(data, state.bot)
-    console.dir(action, { depth: null, colors: true })
-    console.log('STATE POST')
-    console.dir(newBotState, { depth: null, colors: true })
 
     state.bot = newBotState
 
@@ -318,7 +312,6 @@ channel.on('open', function open (): void {
 
     channel.on('message', function handleMessage (json: string): void {
       const message = JSON.parse(json)
-      console.log('>>>')
 
       writeMessagesToFile('recv', message)
       state = dispatchMessage(channel, message, state, bot)
@@ -334,7 +327,6 @@ channel.on('open', function open (): void {
 
     writeMessagesToFile('send', message)
     channel.send(JSON.stringify(message))
-
   })
 })
 

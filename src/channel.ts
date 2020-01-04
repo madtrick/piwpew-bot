@@ -1,6 +1,6 @@
 import WebSocket from 'ws'
 import { EventEmitter } from 'events'
-// import * as readline from 'readline'
+import * as readline from 'readline'
 import * as fs from 'fs'
 
 export interface Channel {
@@ -12,24 +12,29 @@ export interface Channel {
 export class WebSocketChannel extends WebSocket implements Channel {}
 
 interface LoglineDescriptor {
-  type: 'recv' | 'send' | 'unknown'
-  data: string
+  type: 'recv' | 'send' | 'break' | 'unknown'
+  data?: string
 }
 
 export class LogChannel extends EventEmitter implements Channel {
   private index: number = 0
   private lines: LoglineDescriptor[]
+  private prompt: readline.ReadLine
 
   constructor (lines: LoglineDescriptor[]) {
     super()
     this.lines = lines
+    this.prompt = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    })
   }
 
   on (event: string, cb: any): this {
     super.on(event, cb)
 
     if (event === 'message') {
-      process.nextTick(this.start.bind(this))
+      // noop
     }
 
     if (event === 'open') {
@@ -54,29 +59,51 @@ export class LogChannel extends EventEmitter implements Channel {
     this.start()
   }
 
-  private start (): void {
-    for (const line of this.lines.slice(this.index)) {
+  private async start (): Promise<void> {
+    const processLines = (index: number, lines: LoglineDescriptor[]) => {
+      const line = lines[index]
+
       if (line.type === 'recv') {
         this.index = this.index + 1
         this.emit('message', line.data)
+        processLines(this.index, lines)
       }
 
       if (line.type === 'send') {
         return
       }
+
+      if (line.type === 'break') {
+        this.prompt.question('Press enter to continue', () => {
+          this.index = this.index + 1
+          processLines(this.index, lines)
+        })
+      }
     }
+
+    processLines(this.index, this.lines)
   }
 }
 
 function processLogline (line: string): LoglineDescriptor {
-  const recvRegex = /\[recv\](.+)/
-  const sendRegex = /\[send\](.+)/
+  const recvRegex = /^\[recv\](.+)/
+  const sendRegex = /^\[send\](.+)/
+  const breakRegex = /^\[break\]$/
 
   const recvMatch = line.match(recvRegex)
   if (recvMatch) {
     return {
       type: 'recv',
       data: recvMatch[1]
+    }
+  }
+
+
+  const breakMatch = line.match(breakRegex)
+  if (breakMatch) {
+    return {
+      type: 'break',
+      data: undefined
     }
   }
 
