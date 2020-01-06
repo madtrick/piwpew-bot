@@ -6,9 +6,9 @@ import {
   BotAPI,
   BotState,
   Rotation
-} from './src/types'
-import { ActionTypes, MovementDirection } from './src/actions'
-import { Channel, createLogChannel, WebSocketChannel } from './src/channel'
+} from './types'
+import { ActionTypes, MovementDirection } from './actions'
+import { Channel, createLogChannel, WebSocketChannel } from './channel'
 
 import {
   MessageTypes,
@@ -25,7 +25,7 @@ import {
   isStartGameNotificationMessage,
   isJoinGameNotificationMessage,
   isShootResponseMessage
-} from './src/messages'
+} from './messages'
 
 const argv = yargs.demand(['i']).argv
 let channel: Channel
@@ -297,9 +297,11 @@ channel.on('open', function open (): void {
 
   let botImport: Promise<{ bot: BotAPI<any>}>
   if (argv.p) {
-    botImport = import(argv.p as string)
+    botImport = import(path.resolve(__dirname, path.relative(__dirname, argv.p as string)))
   } else {
-    botImport = import('./src/bot')
+    // TODO remove this import as this framework will only work with custom
+    // bots
+    botImport = import('./bot')
   }
 
   botImport.then(({ bot }) => {
