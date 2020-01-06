@@ -15,6 +15,7 @@ import {
   Action,
   rotateAction,
   moveForwardAction
+  // moveBackwardAction
 } from './actions'
 import { calculateAngleBetweenPoints } from './utils'
 
@@ -23,6 +24,7 @@ enum Status {
   NotStarted,
   RotateToCorner,
   MovingToCorner,
+  AvoidingShot,
   Stop
 }
 
@@ -34,11 +36,20 @@ const PLAYER_RADIUS = 16
 
 const ORDER = [TOP_LEFT_CORNER, BOTTOM_RIGHT_CORNER, TOP_RIGHT_CORNER, BOTTOM_LEFT_CORNER]
 
+enum AvoidingShotStatus {
+  Backtracking,
+  Backtracked,
+  Pivoting
+}
+
+type AvoidingShotStatusData<S> = S extends AvoidingShotStatus.Pivoting ? { pivot: Position, currentStatus: any, currentData: any } : never
+
 type StatusData<S> =
   S extends Status.RotateToCorner ? { status: Status.RotateToCorner, statusData: { rotationToCorner: number, cornerIndex: number } } :
   S extends Status.Unregistered ? { status: Status.Unregistered } :
   S extends Status.NotStarted ? { status: Status.NotStarted } :
   S extends Status.MovingToCorner ? { status: Status.MovingToCorner, statusData: { cornerIndex: number } } :
+  S extends Status.AvoidingShot ? { status: Status.AvoidingShot, avoidingShotStatus: AvoidingShotStatus, statusData: AvoidingShotStatusData<AvoidingShotStatus> } :
   S extends Status.Stop ? { status: Status.Stop } :
   never
 
@@ -66,6 +77,22 @@ function approximateNextPosition (from: Position, rotation: Rotation): Position 
   return { x: newX, y: newY }
 }
 
+function circlesIntersect (circleA: { center: Position, radius: number }, circleB: { center: Position, radius: number }): boolean {
+  const { center: { x: xa, y: ya }, radius: radiusA } = circleA
+  const { center: { x: xb, y: yb }, radius: radiusB } = circleB
+  const value = Math.pow((xa - xb), 2) + Math.pow((ya - yb), 2)
+
+  return Math.pow(radiusA - radiusB, 2) <= value && value <= Math.pow(radiusA + radiusB, 2)
+}
+
+function circleInsideAnother (circleA: { center: Position, radius: number }, circleB: { center: Position, radius: number }): boolean {
+  // Formula got at https://stackoverflow.com/a/33490701
+  const { center: { x: xa, y: ya }, radius: radiusA } = circleA
+  const { center: { x: xb, y: yb }, radius: radiusB } = circleB
+  const distance = Math.sqrt(Math.pow((xa - xb), 2) + Math.pow((ya - yb), 2))
+
+  return radiusA > (distance + radiusB)
+}
 
 /*
  * I would like to specify the type of the bot
@@ -103,8 +130,8 @@ export const bot: BotAPI<any> = {
 
     movePlayerResponse: (
       data: SuccessfulMovePlayerResponse | FailedMovePlayerResponse,
-      state: State<Status.MovingToCorner>
-    ): { state: State<Status.MovingToCorner | Status.Stop | Status.RotateToCorner>, actions: Action[] } => {
+      state: State<Status.MovingToCorner | Status.AvoidingShot>
+    ): { state: State<Status.MovingToCorner | Status.Stop | Status.RotateToCorner | Status.AvoidingShot>, actions: Action[] } => {
       console.log(chalk.cyan('MovePlayerResponse'))
       if (!data.success) {
         return {
@@ -113,6 +140,44 @@ export const bot: BotAPI<any> = {
             status: Status.Stop
           },
           actions: []
+        }
+      }
+
+      if (state.status === Status.AvoidingShot) {
+        if (state.avoidingShotStatus === AvoidingShotStatus.Pivoting) {
+          const { pivot } = state.statusData
+          const xDelta = Math.abs(data.data.position.x - pivot.x)
+          const yDelta = Math.abs(data.data.position.y - pivot.y)
+
+          if (xDelta < 5 && yDelta < 5) {
+            return {
+              state: {
+                ...state,
+                status: state.statusData.currentStatus,
+                statusData: state.statusData.currentData,
+                position: data.data.position
+              },
+              // TODO the action should depend on the current status
+              actions: [moveForwardAction()]
+            }
+          } else {
+            return {
+              state: {
+                ...state,
+                position: data.data.position
+              },
+              actions: [moveForwardAction()]
+            }
+          }
+        } else {
+          return {
+            state: {
+              ...state,
+              position: data.data.position,
+              avoidingShotStatus: AvoidingShotStatus.Backtracked
+            },
+            actions: []
+          }
         }
       }
 
@@ -157,8 +222,8 @@ export const bot: BotAPI<any> = {
 
     rotatePlayerResponse: (
       data: SuccessfulRotatePlayerResponse | FailedRotatePlayerResponse,
-      state: State<Status.RotateToCorner>
-    ): { state: State<Status.MovingToCorner | Status.Stop>, actions: Action[] } => {
+      state: State<Status.RotateToCorner | Status.AvoidingShot>
+    ): { state: State<Status.MovingToCorner | Status.AvoidingShot | Status.Stop>, actions: Action[] } => {
       console.log(chalk.cyan('RotatePlayerResponse'))
       if (!data.success) {
         return {
@@ -184,6 +249,15 @@ export const bot: BotAPI<any> = {
         }
       }
 
+      if (state.status === Status.AvoidingShot) {
+        if (state.avoidingShotStatus === AvoidingShotStatus.Pivoting) {
+          return {
+            state,
+            actions: [moveForwardAction()]
+          }
+        }
+      }
+
       throw new Error('not possible')
     },
 
@@ -198,11 +272,112 @@ export const bot: BotAPI<any> = {
       console.log(chalk.cyan('RadarScanNotification'))
       const currentRadarData = state.radarData
       const scanPairs: { position: Position }[][] = []
+      // TODO take into account the state of the bot. Are we moving backward/forward? rotating?
+      const { x, y } = state.position
+      const approximatedNextPosition = approximateNextPosition({ x: x + 3, y: y + 3 }, state.rotation)
+      const oldStatus = state.status
 
       state.radarData.players = scan.players
 
+      if (state.status === Status.AvoidingShot && state.avoidingShotStatus === AvoidingShotStatus.Backtracked) {
+        state.status = state.statusData.currentStatus
+        state.statusData = state.statusData.currentData
+      }
+
+      if (state.status !== Status.AvoidingShot) {
+        const possibleShotCollition = scan.shots.find((shot) => {
+          const shotHit = circlesIntersect(
+            { center: approximatedNextPosition, radius: 16 },
+            { center: shot.position, radius: 1 }
+          ) || circleInsideAnother(
+            { center: approximatedNextPosition, radius: 16 },
+            { center: shot.position, radius: 1 }
+          )
+
+          if (shotHit) {
+            console.log('Possible hit with', shot.position, approximatedNextPosition)
+          }
+
+          return shotHit
+        })
+
+        if (possibleShotCollition && state.status !== Status.Stop) {
+          const angleBetweenBotAndShot = calculateAngleBetweenPoints(state.position, possibleShotCollition.position)
+          const anglePerpendicularToRotation = (angleBetweenBotAndShot + 90) % 360
+          const angleInRadians = (anglePerpendicularToRotation * Math.PI) / 180
+          const distance = 32
+
+          let x2: number
+          let y2: number
+          debugger
+
+          if (anglePerpendicularToRotation <= 90) {
+            console.log('First Q')
+            x2 = distance * Math.cos(angleInRadians) + possibleShotCollition.position.x
+            y2 = distance * Math.sin(angleInRadians) + possibleShotCollition.position.y
+          } else if (anglePerpendicularToRotation > 90 && anglePerpendicularToRotation <= 180) {
+            console.log('Second Q')
+            x2 = distance * Math.cos(angleInRadians) + possibleShotCollition.position.x
+            y2 = distance * Math.sin(angleInRadians) + possibleShotCollition.position.y
+          } else if (anglePerpendicularToRotation > 180 && anglePerpendicularToRotation <= 270) {
+            console.log('Third Q')
+            x2 = distance * Math.cos(angleInRadians) + possibleShotCollition.position.x
+            y2 = distance * Math.sin(angleInRadians) + possibleShotCollition.position.y
+          } else if (anglePerpendicularToRotation > 270 && anglePerpendicularToRotation <= 360) {
+            console.log('Fourth Q')
+            x2 = distance * Math.cos(angleInRadians) + possibleShotCollition.position.x
+            y2 = distance * Math.sin(angleInRadians) + possibleShotCollition.position.y
+          }
+
+          const pivot = { x: x2!, y: y2! }
+          const angleToPivot = calculateAngleBetweenPoints(state.position, pivot)
+          return {
+            state: {
+              ...state,
+              status: Status.AvoidingShot,
+              avoidingShotStatus: AvoidingShotStatus.Pivoting,
+              rotation: angleToPivot,
+              statusData: {
+                pivot,
+                currentStatus: state.status,
+                currentData: state.statusData
+              }
+            },
+            actions: [rotateAction(angleToPivot)]
+          }
+          // return {
+          //   state: {
+          //     ...state,
+          //     status: Status.AvoidingShot,
+          //     avoidingShotStatus: AvoidingShotStatus.Backtracking,
+          //     statusData: {
+          //       currentStatus: state.status,
+          //       currentData: state.statusData
+          //     }
+          //   },
+          //   actions: [moveBackwardAction()]
+          // }
+        }
+      }
+      //   if (possibleShotCollition && state.status !== Status.Stop) {
+      //     return {
+      //       state: {
+      //         ...state,
+      //         status: Status.AvoidingShot,
+      //         avoidingShotStatus: AvoidingShotStatus.Backtracking,
+      //         statusData: {
+      //           currentStatus: state.status,
+      //           currentData: state.statusData
+      //         }
+      //       },
+      //       actions: [moveBackwardAction()]
+      //     }
+      //   }
+      // }
+
       currentRadarData.players.forEach((previouslyScannedPlayer) => {
         scan.players.forEach((scannedPlayer) => {
+          // This only works if there's one player in the radar
           const xDelta = Math.abs(scannedPlayer.position.x - previouslyScannedPlayer.position.x)
           const yDelta = Math.abs(scannedPlayer.position.y - previouslyScannedPlayer.position.y)
 
@@ -212,8 +387,6 @@ export const bot: BotAPI<any> = {
           }
         })
       })
-
-      console.dir(scanPairs, { depth: null, colors: true })
 
       let nextStateAndAction: { state: State<Status.RotateToCorner>, actions: Action[] } | undefined
       scanPairs.forEach((scanPair) => {
@@ -231,7 +404,6 @@ export const bot: BotAPI<any> = {
 
         if (distanceCurrentScan === distancePreviousScan) {
           console.log('>>>> Same distance')
-          const approximatedNextPosition = approximateNextPosition(state.position, state.rotation)
           const distanceForApproximatePosition = calculateDistanceBetweenTwoPoints(currentScan.position, approximatedNextPosition)
 
           if (distanceForApproximatePosition > distanceCurrentScan) {
@@ -282,7 +454,22 @@ export const bot: BotAPI<any> = {
       if (nextStateAndAction) {
         return nextStateAndAction
       } else {
-        return { state, actions: [] }
+        if (oldStatus === Status.AvoidingShot) {
+          // Reset to previous behaviour
+          if (state.status === Status.MovingToCorner) {
+            return {
+              state,
+              actions: [moveForwardAction()]
+            }
+          } else if (state.status === Status.RotateToCorner) {
+            return { state, actions: [rotateAction(state.statusData.rotationToCorner)] }
+          } else {
+            console.log('Unhandled reset state', state.status)
+            return { state, actions: [] }
+          }
+        } else {
+          return { state, actions: [] }
+        }
       }
     },
 

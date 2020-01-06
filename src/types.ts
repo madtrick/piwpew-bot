@@ -28,6 +28,7 @@ export interface BotAPI<S> {
         players: { position: Position }[],
         shots: { position: Position }[],
         unknown: { position: Position }[]
+        // TODO include mines
       },
       state: S
     ) => { state: S, actions: Action[] }
@@ -51,6 +52,8 @@ export interface BotAPI<S> {
       data: SuccessfulShootResponse | FailedShootResponse,
       state: S
     ) => { state: S, actions: Action[] }
+
+    // TODO include handler for destroyed player
 
     startGameNotification?: (state: S) => { state: S, actions: Action[] }
 

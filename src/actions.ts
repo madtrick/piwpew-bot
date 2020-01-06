@@ -1,7 +1,8 @@
 import { Rotation } from './types'
 
 export enum MovementDirection {
-  Forward = 'forward'
+  Forward = 'forward',
+  Backward = 'backward'
 }
 
 export enum ActionTypes {
@@ -44,3 +45,6 @@ export function moveForwardAction (): MoveAction {
   return { type: ActionTypes.Move, data: { direction: MovementDirection.Forward } }
 }
 
+export function moveBackwardAction (): MoveAction {
+  return { type: ActionTypes.Move, data: { direction: MovementDirection.Backward } }
+}
