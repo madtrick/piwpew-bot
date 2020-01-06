@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as _ from 'lodash'
-import yargs from 'yargs'
+import * as yargs from 'yargs'
 import {
   BotAPI,
   BotState,
@@ -27,12 +27,33 @@ import {
   isShootResponseMessage
 } from './messages'
 
-const argv = yargs.demand(['i']).argv
+
+const argv = yargs
+  .options({
+    'i': {
+      alias: 'id',
+      type: 'string',
+      demand: true,
+      describe: 'Bot id'
+    },
+    'm': {
+      alias: 'module',
+      type: 'string',
+      demand: true,
+      describe: 'Module implementing the BotAPI'
+    },
+    'r': {
+      alias: 'replay',
+      type: 'string',
+      demand: false,
+      describe: 'Log file to be replayed'
+    }
+  }).argv
 let channel: Channel
 
-if (argv.f) {
+if (argv.r) {
   // TODO fix the argv typing
-  channel = createLogChannel({ path: argv.f as string })
+  channel = createLogChannel({ path: argv.r as string })
 } else {
   channel = new WebSocketChannel('ws://localhost:8889')
 }
@@ -296,8 +317,8 @@ channel.on('open', function open (): void {
   truncateMessagesFile()
 
   let botImport: Promise<{ bot: BotAPI<any>}>
-  if (argv.p) {
-    botImport = import(path.resolve(__dirname, path.relative(__dirname, argv.p as string)))
+  if (argv.m) {
+    botImport = import(path.resolve(__dirname, path.relative(__dirname, argv.m)))
   } else {
     // TODO remove this import as this framework will only work with custom
     // bots
