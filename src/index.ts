@@ -118,6 +118,7 @@ function dispatchMessage (channel: Channel, message: any, state: any, bot: BotAP
       return state
     }
 
+    // TODO handle all kind of actions from all message handlers
     if (!message.success) {
       const { state: newBotState } = bot.handlers.registerPlayerResponse(
         { success: message.success, data: 'Failed player register' },
