@@ -1,4 +1,3 @@
-import { IPlanner } from './planner'
 import { Action } from './actions'
 
 export interface Position {
@@ -7,19 +6,6 @@ export interface Position {
 }
 
 export type Rotation = number
-export interface Bot {
-  planner: IPlanner
-  // TODO do I need this property in the planner. Isn't it
-  // part already of planner.locations.current
-  location: Position
-  rotation: Rotation
-}
-
-export interface BotState<T> {
-  tracker: boolean
-  shooter: boolean
-  bot: T
-}
 
 export interface BotAPI<S> {
   handlers: {

@@ -4,7 +4,6 @@ import * as _ from 'lodash'
 import * as yargs from 'yargs'
 import {
   BotAPI,
-  BotState,
   Rotation
 } from './types'
 import { ActionTypes, MovementDirection } from './actions'
@@ -113,7 +112,7 @@ function deployMine (channel: Channel): void {
   channel.send(JSON.stringify(data))
 }
 
-function dispatchMessage (channel: Channel, message: any, state: BotState<any>, bot: BotAPI<any>): BotState<any> {
+function dispatchMessage (channel: Channel, message: any, state: any, bot: BotAPI<any>): any {
   if (isRegisterPlayerResponseMessage(message)) {
     if (!bot.handlers.registerPlayerResponse) {
       return state
@@ -316,22 +315,10 @@ function dispatchMessage (channel: Channel, message: any, state: BotState<any>, 
 channel.on('open', function open (): void {
   truncateMessagesFile()
 
-  let botImport: Promise<{ bot: BotAPI<any>}>
-  if (argv.m) {
-    botImport = import(path.resolve(__dirname, path.relative(__dirname, argv.m)))
-  } else {
-    // TODO remove this import as this framework will only work with custom
-    // bots
-    botImport = import('./bot')
-  }
+  const botImport: Promise<{ bot: BotAPI<any>}> = import(path.resolve(__dirname, path.relative(__dirname, argv.m)))
 
   botImport.then(({ bot }) => {
-    let state: BotState<any> = {
-      // TODO fix the typings here
-      tracker: argv.t as boolean,
-      shooter: argv.s as boolean,
-      bot: {}
-    }
+    let state = {}
 
     channel.on('message', function handleMessage (json: string): void {
       const message = JSON.parse(json)
