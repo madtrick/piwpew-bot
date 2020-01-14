@@ -12,15 +12,15 @@ import {
   FailedShootResponse,
   Position,
   Rotation
-} from './types'
+} from '../src/types'
 import {
   ActionTypes,
   Action,
   ShootAction,
   rotateAction,
   moveForwardAction
-} from './actions'
-import { calculateAngleBetweenPoints } from './utils'
+} from '../src/actions'
+import { calculateAngleBetweenPoints } from '../src/utils'
 
 enum Status {
   Unregistered,
