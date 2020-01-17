@@ -32,15 +32,22 @@ const argv = yargs
       type: 'string',
       demand: false,
       describe: 'Log file to be replayed'
+    },
+    's': {
+      alias: 'server',
+      type: 'string',
+      demand: false,
+      default: 'localhost:8889',
+      describe: 'Address of the game engine'
     }
   }).argv
 let channel: Channel
 
 if (argv.r) {
-  // TODO fix the argv typing
   channel = createLogChannel({ path: argv.r as string })
 } else {
-  channel = new WebSocketChannel('ws://localhost:8889')
+  // TODO implement connection timeout
+  channel = new WebSocketChannel(`ws://${argv.server}`)
 }
 
 const playerId = argv.i as string
