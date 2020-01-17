@@ -24,7 +24,8 @@ export enum ResponseTypes {
 export enum NotificationTypes {
   RadarScan = 'RadarScan',
   StartGame = 'StartGame',
-  JoinGame = 'JoinGame'
+  JoinGame = 'JoinGame',
+  ShotHit = 'ShotHit'
 }
 
 export interface RegisterPlayerRequestMessage {
@@ -78,6 +79,14 @@ export interface RotatePlayerResponseMessage {
   type: MessageTypes.Response
   id: 'RotatePlayer'
   success: boolean
+}
+
+export interface PlayerShotHitNotificationMessage {
+  type: MessageTypes.Notification
+  id: NotificationTypes.ShotHit
+  data: {
+    damage: number
+  }
 }
 
 export interface RadarScanNotificationMessage {
@@ -161,4 +170,10 @@ export function isShootResponseMessage (message: any): message is ShootResponseM
   const { type, id } = message
 
   return type === MessageTypes.Response && id === 'Shoot'
+}
+
+export function isPlayerShotHitNotificationMessage (message: any): message is PlayerShotHitNotificationMessage {
+  const { type, id } = message
+
+  return type === MessageTypes.Notification && id === NotificationTypes.ShotHit
 }

@@ -39,6 +39,11 @@ export interface BotAPI<S> {
       state: S
     ) => { state: S, actions: Action[] }
 
+    shotHitNotification?: (
+      data: PlayerShotHitNotification,
+      state: S
+    ) => { state: S, actions: Action[] }
+
     // TODO include handler for destroyed player
 
     startGameNotification?: (state: S) => { state: S, actions: Action[] }
@@ -86,4 +91,8 @@ export interface SuccessfulShootResponse {
 
 export interface FailedShootResponse {
   success: false
+}
+
+export interface PlayerShotHitNotification {
+  damage: number
 }
