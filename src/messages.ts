@@ -18,7 +18,8 @@ export enum RequestTypes {
 export enum ResponseTypes {
   RegisterPlayer = 'RegisterPlayer',
   MovePlayer = 'MovePlayer',
-  RotatePlayer = 'RotatePlayer'
+  RotatePlayer = 'RotatePlayer',
+  Shoot = 'Shoot'
 }
 
 export enum NotificationTypes {
@@ -106,7 +107,7 @@ export interface ShootRequestMessage {
 
 export interface ShootResponseMessage {
   type: MessageTypes.Response
-  id: 'Shoot'
+  id: ResponseTypes.Shoot
   success: boolean
 }
 

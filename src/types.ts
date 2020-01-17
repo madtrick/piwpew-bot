@@ -55,6 +55,7 @@ export interface BotAPI<S> {
 export interface SuccessfulRegisterPlayerResponse {
   success: true
   data: {
+    id: string
     position: Position
     rotation: Rotation
   }
