@@ -1,6 +1,5 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import * as _ from 'lodash'
 import * as yargs from 'yargs'
 import { BotAPI } from './types'
 import { Channel, createLogChannel, WebSocketChannel } from './channel'
