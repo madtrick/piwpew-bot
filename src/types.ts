@@ -80,6 +80,9 @@ export interface FailedMovePlayerResponse {
 
 export interface SuccessfulRotatePlayerResponse {
   success: true
+  data: {
+    rotation: number
+  }
 }
 
 export interface FailedRotatePlayerResponse {

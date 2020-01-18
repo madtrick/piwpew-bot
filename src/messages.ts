@@ -80,6 +80,9 @@ export interface RotatePlayerResponseMessage {
   type: MessageTypes.Response
   id: 'RotatePlayer'
   success: boolean
+  data: {
+    rotation: number
+  }
 }
 
 export interface PlayerShotHitNotificationMessage {

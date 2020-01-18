@@ -61,8 +61,6 @@ Move the player in the desired direction. The direction can be `forward` or `bac
 
 Rotate the player to a desired angle. The new angle has to be a value in the range `[0, 360]`. The game engine replies with a `Response` object telling if the rotation was successful together with the new player rotation.
 
-TODO: include rotation in the rotation response
-
 #### Shoot
 
 Fire a shot. The game engine replies with a response object telling if the shot was successful.

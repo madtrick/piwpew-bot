@@ -176,7 +176,7 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
     }
 
     const { state: newBotState, requests: [request] } = bot.handlers.rotatePlayerResponse(
-      { success: message.success },
+      { success: message.success, data: { rotation: message.data.rotation } },
       context.botState
     )
     let messages: RequestMessage[] = []

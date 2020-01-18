@@ -202,7 +202,10 @@ describe('Message dispatcher', () => {
     const message = {
       type: MessageTypes.Response,
       id: ResponseTypes.RotatePlayer,
-      success: true
+      success: true,
+      data: {
+        rotation: 123
+      }
     }
     const bot = {
       handlers: {
@@ -215,7 +218,7 @@ describe('Message dispatcher', () => {
       messageDispatcher(message, bot, context)
 
       expect(bot.handlers.rotatePlayerResponse).to.have.been.calledOnceWith(
-        { success: true },
+        { success: true, data: { rotation: message.data.rotation } },
         context.botState
       )
     })
