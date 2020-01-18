@@ -1,4 +1,4 @@
-import { Action } from './actions'
+import { Request } from './requests'
 
 export interface Position {
   x: number
@@ -17,38 +17,38 @@ export interface BotAPI<S> {
         // TODO include mines
       },
       state: S
-    ) => { state: S, actions: Action[] }
+    ) => { state: S, requests: Request[] }
 
     registerPlayerResponse?: (
       data: SuccessfulRegisterPlayerResponse | FailedRegisterPlayerResponse,
       state: S
-    ) => { state: S, actions: Action[] }
+    ) => { state: S, requests: Request[] }
 
     rotatePlayerResponse?: (
       data: SuccessfulRotatePlayerResponse | FailedRotatePlayerResponse,
       state: S
-    ) => { state: S, actions: Action[] }
+    ) => { state: S, requests: Request[] }
 
     movePlayerResponse?: (
       data: SuccessfulMovePlayerResponse | FailedMovePlayerResponse,
       state: S
-    ) => { state: S, actions: Action[] }
+    ) => { state: S, requests: Request[] }
 
     shootResponse?: (
       data: SuccessfulShootResponse | FailedShootResponse,
       state: S
-    ) => { state: S, actions: Action[] }
+    ) => { state: S, requests: Request[] }
 
     shotHitNotification?: (
       data: PlayerShotHitNotification,
       state: S
-    ) => { state: S, actions: Action[] }
+    ) => { state: S, requests: Request[] }
 
     // TODO include handler for destroyed player
 
-    startGameNotification?: (state: S) => { state: S, actions: Action[] }
+    startGameNotification?: (state: S) => { state: S, requests: Request[] }
 
-    joinGameNotification?: (state: S) => { state: S, actions: Action[] }
+    joinGameNotification?: (state: S) => { state: S, requests: Request[] }
   }
 }
 

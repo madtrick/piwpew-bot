@@ -109,42 +109,42 @@ interface BotAPI<S> {
         unknown: { position: Position }[]
       },
       state: S
-    ) => { state: S, actions: Action[] }
+    ) => { state: S, requests: Request[] }
 
     registerPlayerResponse?: (
       data: SuccessfulRegisterPlayerResponse | FailedRegisterPlayerResponse,
       state: S
-    ) => { state: S, actions: Action[] }
+    ) => { state: S, requests: Request[] }
 
     rotatePlayerResponse?: (
       data: SuccessfulRotatePlayerResponse | FailedRotatePlayerResponse,
       state: S
-    ) => { state: S, actions: Action[] }
+    ) => { state: S, requests: Request[] }
 
     movePlayerResponse?: (
       data: SuccessfulMovePlayerResponse | FailedMovePlayerResponse,
       state: S
-    ) => { state: S, actions: Action[] }
+    ) => { state: S, requests: Request[] }
 
     shootResponse?: (
       data: SuccessfulShootResponse | FailedShootResponse,
       state: S
-    ) => { state: S, actions: Action[] }
+    ) => { state: S, requests: Request[] }
 
 		shotHitNotification?: (
       data: PlayerShotHitNotification,
       state: S
-    ) => { state: S, actions: Action[] }
+    ) => { state: S, requests: Request[] }
 
-    startGameNotification?: (state: S) => { state: S, actions: Action[] }
+    startGameNotification?: (state: S) => { state: S, requests: Request[] }
 
-    joinGameNotification?: (state: S) => { state: S, actions: Action[] }
+    joinGameNotification?: (state: S) => { state: S, requests: Request[] }
   }
 }
 
 ```
 
-For a list of all the types mentioned in this interface check: [types]() and [actions]()
+For a list of all the types mentioned in this interface check: [types]() and [requests]()
 
 ## Usage
 

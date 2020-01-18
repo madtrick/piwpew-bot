@@ -1,16 +1,16 @@
 import { BotAPI, Rotation } from './types'
 import {
-  // MoveAction,
-  // ShootAction,
-  // RotateAction,
-  // DeployMineAction,
-  Action,
-  ActionTypes,
+  // MoveRequest,
+  // ShootRequest,
+  // RotateRequest,
+  // DeployMineRequest,
+  Request,
+  RequestTypes,
   MovementDirection
-} from './actions'
+} from './requests'
 import {
   MessageTypes,
-  RequestTypes,
+  RequestTypes as MessageRequestTypes,
   MovePlayerRequestMessage,
   RotatePlayerRequestMessage,
   ShootRequestMessage,
@@ -27,24 +27,24 @@ import {
 
 type RequestMessage = MovePlayerRequestMessage | ShootRequestMessage | DeployMineRequestMessage | RotatePlayerRequestMessage
 
-// function actionToMessage (action: MoveAction): MovePlayerRequestMessage
-// function actionToMessage (action: ShootAction): ShootRequestMessage
-// function actionToMessage (action: RotateAction): RotatePlayerRequestMessage
-// function actionToMessage (action: DeployMineAction): DeployMineRequestMessage
-function actionToMessage (action: Action | undefined): RequestMessage | undefined {
-  if (action && action.type === ActionTypes.Move) {
-    return move(action.data.direction)
+// function requestToMessage (request: MoveRequest): MovePlayerRequestMessage
+// function requestToMessage (request: ShootRequest): ShootRequestMessage
+// function requestToMessage (request: RotateRequest): RotatePlayerRequestMessage
+// function requestToMessage (request: DeployMineRequest): DeployMineRequestMessage
+function requestToMessage (request: Request | undefined): RequestMessage | undefined {
+  if (request && request.type === RequestTypes.Move) {
+    return move(request.data.direction)
   }
 
-  if (action && action.type === ActionTypes.Shoot) {
+  if (request && request.type === RequestTypes.Shoot) {
     return shoot()
   }
 
-  if (action && action.type === ActionTypes.Rotate) {
-    return rotate(action.data.rotation)
+  if (request && request.type === RequestTypes.Rotate) {
+    return rotate(request.data.rotation)
   }
 
-  if (action && action.type === ActionTypes.DeployMine) {
+  if (request && request.type === RequestTypes.DeployMine) {
     return deployMine()
   }
 
@@ -54,7 +54,7 @@ function actionToMessage (action: Action | undefined): RequestMessage | undefine
 function move (direction: MovementDirection): MovePlayerRequestMessage {
   const data: MovePlayerRequestMessage = {
     type: MessageTypes.Request,
-    id: RequestTypes.MovePlayer,
+    id: MessageRequestTypes.MovePlayer,
     data: {
       movement: {
         direction: direction
@@ -68,7 +68,7 @@ function move (direction: MovementDirection): MovePlayerRequestMessage {
 function rotate (rotation: Rotation): RotatePlayerRequestMessage {
   const data: RotatePlayerRequestMessage = {
     type: MessageTypes.Request,
-    id: RequestTypes.RotatePlayer,
+    id: MessageRequestTypes.RotatePlayer,
     data: {
       rotation
     }
@@ -80,7 +80,7 @@ function rotate (rotation: Rotation): RotatePlayerRequestMessage {
 function shoot (): ShootRequestMessage {
   const data: ShootRequestMessage = {
     type: MessageTypes.Request,
-    id: RequestTypes.Shoot
+    id: MessageRequestTypes.Shoot
   }
 
   return data
@@ -89,7 +89,7 @@ function shoot (): ShootRequestMessage {
 function deployMine (): DeployMineRequestMessage {
   const data: DeployMineRequestMessage = {
     type: MessageTypes.Request,
-    id: RequestTypes.DeployMine
+    id: MessageRequestTypes.DeployMine
   }
 
   // writeMessagesToFile('send', data)
@@ -103,7 +103,7 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
       return { newBotState: context.botState, messages: [] }
     }
 
-    // TODO handle all kind of actions from all message handlers
+    // TODO handle all kind of requests from all message handlers
     if (message.success === false) {
       const { state: newBotState } = bot.handlers.registerPlayerResponse(
         { success: message.success, data: 'Failed player register' },
@@ -116,7 +116,7 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
         throw new Error('invalid response message')
       }
 
-      const { state: newBotState, actions: [action] } = bot.handlers.registerPlayerResponse(
+      const { state: newBotState, requests: [request] } = bot.handlers.registerPlayerResponse(
         { success: true, data: message.details },
         context.botState
       )
@@ -125,8 +125,8 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
       const messages = []
       let responseMessage
 
-      if (action && action.type === ActionTypes.Move) {
-        responseMessage = move(action.data.direction)
+      if (request && request.type === RequestTypes.Move) {
+        responseMessage = move(request.data.direction)
       }
 
       if (responseMessage) {
@@ -155,15 +155,15 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
       }
 
       const { position } = message.details
-      const { state: newBotState, actions: [action] } = bot.handlers.movePlayerResponse(
+      const { state: newBotState, requests: [request] } = bot.handlers.movePlayerResponse(
         { success: true, data: { position } },
         context.botState
       )
       let messages: RequestMessage[] = []
-      const messageFromAction = actionToMessage(action)
+      const messageFromRequest = requestToMessage(request)
 
-      if (messageFromAction) {
-        messages = [messageFromAction]
+      if (messageFromRequest) {
+        messages = [messageFromRequest]
       }
 
       return { newBotState, messages }
@@ -175,15 +175,15 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
       return { newBotState: context.botState, messages: [] }
     }
 
-    const { state: newBotState, actions: [action] } = bot.handlers.rotatePlayerResponse(
+    const { state: newBotState, requests: [request] } = bot.handlers.rotatePlayerResponse(
       { success: message.success },
       context.botState
     )
     let messages: RequestMessage[] = []
-    const messageFromAction = actionToMessage(action)
+    const messageFromRequest = requestToMessage(request)
 
-    if (messageFromAction) {
-      messages = [messageFromAction]
+    if (messageFromRequest) {
+      messages = [messageFromRequest]
     }
 
     return { newBotState, messages }
@@ -194,15 +194,15 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
       return { newBotState: context.botState, messages: [] }
     }
 
-    const { state: newBotState, actions: [action] } = bot.handlers.shootResponse(
+    const { state: newBotState, requests: [request] } = bot.handlers.shootResponse(
       { success: message.success },
       context.botState
     )
     let messages: RequestMessage[] = []
-    const messageFromAction = actionToMessage(action)
+    const messageFromRequest = requestToMessage(request)
 
-    if (messageFromAction) {
-      messages = [messageFromAction]
+    if (messageFromRequest) {
+      messages = [messageFromRequest]
     }
 
     return { newBotState, messages }
@@ -218,12 +218,12 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
     }
 
     const { data } = message
-    const { state: newBotState, actions: [action] } = bot.handlers.radarScanNotification(data, context.botState)
+    const { state: newBotState, requests: [request] } = bot.handlers.radarScanNotification(data, context.botState)
     let messages: RequestMessage[] = []
-    const messageFromAction = actionToMessage(action)
+    const messageFromRequest = requestToMessage(request)
 
-    if (messageFromAction) {
-      messages = [messageFromAction]
+    if (messageFromRequest) {
+      messages = [messageFromRequest]
     }
 
     return { newBotState, messages }
@@ -234,12 +234,12 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
       return { newBotState: context.botState, messages: [] }
     }
 
-    const { state: newBotState, actions: [action] } = bot.handlers.startGameNotification(context.botState)
+    const { state: newBotState, requests: [request] } = bot.handlers.startGameNotification(context.botState)
     let messages: RequestMessage[] = []
-    const messageFromAction = actionToMessage(action)
+    const messageFromRequest = requestToMessage(request)
 
-    if (messageFromAction) {
-      messages = [messageFromAction]
+    if (messageFromRequest) {
+      messages = [messageFromRequest]
     }
 
     return { newBotState, messages }
@@ -250,12 +250,12 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
       return { newBotState: context.botState, messages: [] }
     }
 
-    const { state: newBotState, actions: [action] } = bot.handlers.joinGameNotification(context.botState)
+    const { state: newBotState, requests: [request] } = bot.handlers.joinGameNotification(context.botState)
     let messages: RequestMessage[] = []
-    const messageFromAction = actionToMessage(action)
+    const messageFromRequest = requestToMessage(request)
 
-    if (messageFromAction) {
-      messages = [messageFromAction]
+    if (messageFromRequest) {
+      messages = [messageFromRequest]
     }
 
     return { newBotState, messages }
@@ -267,12 +267,12 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
     }
 
     const { data } = message
-    const { state: newBotState, actions: [action] } = bot.handlers.shotHitNotification(data, context.botState)
+    const { state: newBotState, requests: [request] } = bot.handlers.shotHitNotification(data, context.botState)
     let messages: RequestMessage[] = []
-    const messageFromAction = actionToMessage(action)
+    const messageFromRequest = requestToMessage(request)
 
-    if (messageFromAction) {
-      messages = [messageFromAction]
+    if (messageFromRequest) {
+      messages = [messageFromRequest]
     }
 
     return { newBotState, messages }

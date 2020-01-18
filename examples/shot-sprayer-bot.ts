@@ -14,12 +14,12 @@ import {
   Rotation
 } from '../src/types'
 import {
-  ActionTypes,
-  Action,
-  ShootAction,
-  rotateAction,
-  moveForwardAction
-} from '../src/actions'
+  RequestTypes,
+  Request,
+  ShootRequest,
+  rotateRequest,
+  moveForwardRequest
+} from '../src/requests'
 import { calculateAngleBetweenPoints } from '../src/utils'
 
 enum Status {
@@ -44,8 +44,8 @@ type StatusData<S> =
 
 type State<S extends Status> = { position: Position, rotation: Rotation } & StatusData<S>
 
-function shootAction (): ShootAction {
-  return { type: ActionTypes.Shoot }
+function shootRequest (): ShootRequest {
+  return { type: RequestTypes.Shoot }
 }
 
 /*
@@ -62,10 +62,10 @@ export const bot: BotAPI<any> = {
     registerPlayerResponse: (
       data: FailedRegisterPlayerResponse | SuccessfulRegisterPlayerResponse,
       state: State<Status.Unregistered>
-    ): { state: State<Status.NotStarted | Status.Unregistered>, actions: Action[] } => {
+    ): { state: State<Status.NotStarted | Status.Unregistered>, requests: Request[] } => {
       console.log(chalk.cyan('RegisterPlayerResponse'))
       if (!data.success) {
-        return { state, actions: [] }
+        return { state, requests: [] }
       }
 
       if (data.success) {
@@ -76,7 +76,7 @@ export const bot: BotAPI<any> = {
           position: data.data.position
         }
 
-        return { state: botState, actions: [] }
+        return { state: botState, requests: [] }
       }
 
       throw new Error('not possible')
@@ -85,7 +85,7 @@ export const bot: BotAPI<any> = {
     movePlayerResponse: (
       data: SuccessfulMovePlayerResponse | FailedMovePlayerResponse,
       state: State<Status.MovingToArenaCenter>
-    ): { state: State<Status.MovingToArenaCenter | Status.Stop | Status.Rotating>, actions: Action[] } => {
+    ): { state: State<Status.MovingToArenaCenter | Status.Stop | Status.Rotating>, requests: Request[] } => {
       console.log(chalk.cyan('MovePlayerResponse'))
       if (!data.success) {
         return {
@@ -93,7 +93,7 @@ export const bot: BotAPI<any> = {
             ...state,
             status: Status.Stop
           },
-          actions: []
+          requests: []
         }
       }
 
@@ -114,12 +114,12 @@ export const bot: BotAPI<any> = {
               rotation,
               position: data.data.position
             },
-            actions: [rotateAction(rotation)]
+            requests: [rotateRequest(rotation)]
           }
         } else {
           return {
             state,
-            actions: [moveForwardAction()]
+            requests: [moveForwardRequest()]
           }
         }
       }
@@ -130,7 +130,7 @@ export const bot: BotAPI<any> = {
     rotatePlayerResponse: (
       data: SuccessfulRotatePlayerResponse | FailedRotatePlayerResponse,
       state: State<Status.RotatedToArenaCenter | Status.Rotating>
-    ): { state: State<Status.MovingToArenaCenter | Status.Rotating | Status.Stop | Status.Shooting>, actions: Action[] } => {
+    ): { state: State<Status.MovingToArenaCenter | Status.Rotating | Status.Stop | Status.Shooting>, requests: Request[] } => {
       console.log(chalk.cyan('RotatePlayerResponse'))
       if (!data.success) {
         return {
@@ -138,7 +138,7 @@ export const bot: BotAPI<any> = {
             ...state,
             status: Status.Stop
           },
-          actions: []
+          requests: []
         }
       }
 
@@ -151,7 +151,7 @@ export const bot: BotAPI<any> = {
               shotsFired: 0
             }
           },
-          actions: [shootAction()]
+          requests: [shootRequest()]
         }
       }
 
@@ -160,14 +160,14 @@ export const bot: BotAPI<any> = {
           ...state,
           status: Status.MovingToArenaCenter
         },
-        actions: [moveForwardAction()]
+        requests: [moveForwardRequest()]
       }
     },
 
     shootResponse: (
       data: SuccessfulShootResponse | FailedShootResponse,
       state: State<Status.Shooting>
-    ): { state: State<Status.Shooting | Status.Rotating | Status.Stop>, actions: Action[] } => {
+    ): { state: State<Status.Shooting | Status.Rotating | Status.Stop>, requests: Request[] } => {
       console.log(chalk.cyan('ShootResponse'))
 
       if (!data.success) {
@@ -175,7 +175,7 @@ export const bot: BotAPI<any> = {
         // bot run out of shots. So ignore it and continue shooting
         return {
           state,
-          actions: [shootAction()]
+          requests: [shootRequest()]
         }
       }
 
@@ -191,7 +191,7 @@ export const bot: BotAPI<any> = {
               ticksToNextRotation: 5
             }
           },
-          actions: [rotateAction(rotation)]
+          requests: [rotateRequest(rotation)]
         }
       } else {
         const shotsFired = state.statusData.shotsFired + 1
@@ -203,7 +203,7 @@ export const bot: BotAPI<any> = {
               shotsFired
             }
           },
-          actions: [shootAction()]
+          requests: [shootRequest()]
         }
       }
     },
@@ -215,7 +215,7 @@ export const bot: BotAPI<any> = {
         unknown: { position: Position }[]
       },
       state: State<Status.Rotating>
-    ): { state: State<Status>, actions: Action[] } => {
+    ): { state: State<Status>, requests: Request[] } => {
       console.log(chalk.cyan('RadarScanNotification'))
       if (state.status === Status.Rotating) {
         if (state.statusData.ticksToNextRotation === 0) {
@@ -228,7 +228,7 @@ export const bot: BotAPI<any> = {
                 ticksToNextRotation: 5
               }
             },
-            actions: [rotateAction(rotation)]
+            requests: [rotateRequest(rotation)]
           }
         } else {
           const ticksToNextRotation = state.statusData.ticksToNextRotation - 1
@@ -240,17 +240,17 @@ export const bot: BotAPI<any> = {
                 ticksToNextRotation
               }
             },
-            actions: []
+            requests: []
           }
         }
       } else {
-        return { state, actions: [] }
+        return { state, requests: [] }
       }
     },
 
     startGameNotification: (
       state: State<Status.NotStarted>
-    ): { state: State<Status.RotatedToArenaCenter>, actions: Action[] } => {
+    ): { state: State<Status.RotatedToArenaCenter>, requests: Request[] } => {
       console.log(chalk.cyan('StartGameNotification'))
       const rotationToArenaCenter = calculateAngleBetweenPoints(state.position, { x: 250, y: 250 })
 
@@ -263,13 +263,13 @@ export const bot: BotAPI<any> = {
           rotation: rotationToArenaCenter,
           position: state.position
         },
-        actions: [rotateAction(rotationToArenaCenter)]
+        requests: [rotateRequest(rotationToArenaCenter)]
       }
     },
 
     joinGameNotification: (
       state: State<Status.NotStarted>
-    ): { state: State<Status.RotatedToArenaCenter>, actions: Action[] } => {
+    ): { state: State<Status.RotatedToArenaCenter>, requests: Request[] } => {
       console.log(chalk.cyan('JoinGameNotification'))
       const rotationToArenaCenter = calculateAngleBetweenPoints(state.position, { x: 250, y: 250 })
 
@@ -282,7 +282,7 @@ export const bot: BotAPI<any> = {
           rotation: state.rotation,
           position: state.position
         },
-        actions: [rotateAction(rotationToArenaCenter)]
+        requests: [rotateRequest(rotationToArenaCenter)]
       }
     }
   }

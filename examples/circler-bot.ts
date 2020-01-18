@@ -12,10 +12,10 @@ import {
   Rotation
 } from '../src/types'
 import {
-  Action,
-  rotateAction,
-  moveForwardAction
-} from '../src/actions'
+  Request,
+  rotateRequest,
+  moveForwardRequest
+} from '../src/requests'
 import { calculateAngleBetweenPoints } from '../src/utils'
 
 enum Status {
@@ -153,10 +153,10 @@ export const bot: BotAPI<any> = {
     registerPlayerResponse: (
       data: FailedRegisterPlayerResponse | SuccessfulRegisterPlayerResponse,
       state: State<Status.Unregistered>
-    ): { state: State<Status.WaitToStart | Status.Unregistered>, actions: Action[] } => {
+    ): { state: State<Status.WaitToStart | Status.Unregistered>, requests: Request[] } => {
       console.log(chalk.cyan('RegisterPlayerResponse'))
       if (!data.success) {
-        return { state, actions: [] }
+        return { state, requests: [] }
       }
 
       if (data.success) {
@@ -167,7 +167,7 @@ export const bot: BotAPI<any> = {
           position: data.data.position
         }
 
-        return { state: botState, actions: [] }
+        return { state: botState, requests: [] }
       }
 
       throw new Error('not possible')
@@ -176,7 +176,7 @@ export const bot: BotAPI<any> = {
     movePlayerResponse: (
       data: SuccessfulMovePlayerResponse | FailedMovePlayerResponse,
       state: State<Status.MoveToCircle | Status.MoveToNextCirclePoint>
-    ): { state: State<Status.MoveToCircle | Status.MoveToNextCirclePoint | Status.RotateToNextCirclePoint | Status.Stop>, actions: Action[] } => {
+    ): { state: State<Status.MoveToCircle | Status.MoveToNextCirclePoint | Status.RotateToNextCirclePoint | Status.Stop>, requests: Request[] } => {
       console.log(chalk.cyan('MovePlayerResponse'))
       if (!data.success) {
         return {
@@ -186,7 +186,7 @@ export const bot: BotAPI<any> = {
             position: state.position,
             status: Status.Stop
           },
-          actions: []
+          requests: []
         }
       }
 
@@ -209,7 +209,7 @@ export const bot: BotAPI<any> = {
                 nextCirclePoint: rotatedPoint
               }
             },
-            actions: [rotateAction(rotationToNextCirclePoint)]
+            requests: [rotateRequest(rotationToNextCirclePoint)]
           }
         } else {
           return {
@@ -221,7 +221,7 @@ export const bot: BotAPI<any> = {
                 nextCirclePoint: state.statusData.nextCirclePoint
               }
             },
-            actions: [moveForwardAction()]
+            requests: [moveForwardRequest()]
           }
         }
       }
@@ -245,7 +245,7 @@ export const bot: BotAPI<any> = {
                 nextCirclePoint: rotatedPoint
               }
             },
-            actions: [rotateAction(rotationToNextCirclePoint)]
+            requests: [rotateRequest(rotationToNextCirclePoint)]
           }
         } else {
           return {
@@ -257,7 +257,7 @@ export const bot: BotAPI<any> = {
                 destination: state.statusData.destination
               }
             },
-            actions: [moveForwardAction()]
+            requests: [moveForwardRequest()]
           }
         }
       }
@@ -268,7 +268,7 @@ export const bot: BotAPI<any> = {
     rotatePlayerResponse: (
       data: SuccessfulRotatePlayerResponse | FailedRotatePlayerResponse,
       state: State<Status.RotateToCircle | Status.RotateToNextCirclePoint>
-    ): { state: State<Status.MoveToCircle | Status.MoveToNextCirclePoint | Status.Stop>, actions: Action[] } => {
+    ): { state: State<Status.MoveToCircle | Status.MoveToNextCirclePoint | Status.Stop>, requests: Request[] } => {
       console.log(chalk.cyan('RotatePlayerResponse'))
       if (!data.success) {
         return {
@@ -277,7 +277,7 @@ export const bot: BotAPI<any> = {
             position: state.position,
             status: Status.Stop
           },
-          actions: []
+          requests: []
         }
       }
 
@@ -306,7 +306,7 @@ export const bot: BotAPI<any> = {
               destination: closestIntersectionPoint
             }
           },
-          actions: [moveForwardAction()]
+          requests: [moveForwardRequest()]
         }
       }
 
@@ -320,21 +320,21 @@ export const bot: BotAPI<any> = {
               nextCirclePoint: state.statusData.nextCirclePoint
             }
           },
-          actions: [moveForwardAction()]
+          requests: [moveForwardRequest()]
         }
       }
 
       throw new Error('unexpected status')
     },
 
-    radarScanNotification: (_scan: { players: { position: Position }[], shots: { position: Position }[], unknown: { position: Position }[] }, state: State<Status>): { state: State<Status>, actions: Action[] } => {
+    radarScanNotification: (_scan: { players: { position: Position }[], shots: { position: Position }[], unknown: { position: Position }[] }, state: State<Status>): { state: State<Status>, requests: Request[] } => {
       console.log(chalk.cyan('RadarScanNotification'))
-      return { state, actions: [] }
+      return { state, requests: [] }
     },
 
     startGameNotification: (
       state: State<Status.WaitToStart>
-    ): { state: State<Status.RotateToCircle>, actions: Action[] } => {
+    ): { state: State<Status.RotateToCircle>, requests: Request[] } => {
       console.log(chalk.cyan('StartGameNotification'))
       const rotationToCircleBorder = findRotationToCircleCenter(state.position, CIRCLE_CENTER)
 
@@ -347,13 +347,13 @@ export const bot: BotAPI<any> = {
             rotationToCircleBorder
           }
         },
-        actions: [rotateAction(rotationToCircleBorder)]
+        requests: [rotateRequest(rotationToCircleBorder)]
       }
     },
 
     joinGameNotification: (
       state: State<Status.WaitToStart>
-    ): { state: State<Status.RotateToCircle>, actions: Action[] } => {
+    ): { state: State<Status.RotateToCircle>, requests: Request[] } => {
       console.log(chalk.cyan('JoinGameNotification'))
       const rotationToCircleBorder = findRotationToCircleCenter(state.position, CIRCLE_CENTER)
 
@@ -366,7 +366,7 @@ export const bot: BotAPI<any> = {
             rotationToCircleBorder
           }
         },
-        actions: [rotateAction(rotationToCircleBorder)]
+        requests: [rotateRequest(rotationToCircleBorder)]
       }
     }
   }

@@ -1,5 +1,5 @@
 import { Rotation, Position } from './types'
-import { MovementDirection } from './actions'
+import { MovementDirection } from './requests'
 
 export enum MessageTypes {
   Request = 'Request',
