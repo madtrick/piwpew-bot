@@ -195,7 +195,7 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
     }
 
     const { state: newBotState, requests: [request] } = bot.handlers.shootResponse(
-      { success: message.success },
+      { success: message.success, data: { shots: message.data.shots } },
       context.botState
     )
     let messages: RequestMessage[] = []

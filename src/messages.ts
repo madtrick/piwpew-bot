@@ -112,6 +112,9 @@ export interface ShootResponseMessage {
   type: MessageTypes.Response
   id: ResponseTypes.Shoot
   success: boolean
+  data: {
+    shots: number
+  }
 }
 
 export interface DeployMineRequestMessage {

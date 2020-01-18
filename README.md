@@ -63,9 +63,7 @@ Rotate the player to a desired angle. The new angle has to be a value in the ran
 
 #### Shoot
 
-Fire a shot. The game engine replies with a response object telling if the shot was successful.
-
-TODO: include number of remaining shots in the response from the server
+Fire a shot. The game engine replies with a response object telling if the shot was successful together with the number of remaining shots.
 
 #### Deploy mine
 

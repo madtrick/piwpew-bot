@@ -243,7 +243,10 @@ describe('Message dispatcher', () => {
     const message = {
       type: MessageTypes.Response,
       id: ResponseTypes.Shoot,
-      success: true
+      success: true,
+      data: {
+        shots: 10
+      }
     }
     const bot = {
       handlers: {
@@ -256,7 +259,7 @@ describe('Message dispatcher', () => {
       messageDispatcher(message, bot, context)
 
       expect(bot.handlers.shootResponse).to.have.been.calledOnceWith(
-        { success: true },
+        { success: true, data: { shots: 10 } },
         context.botState
       )
     })

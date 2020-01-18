@@ -91,6 +91,9 @@ export interface FailedRotatePlayerResponse {
 
 export interface SuccessfulShootResponse {
   success: true
+  data: {
+    shots: number
+  }
 }
 
 export interface FailedShootResponse {
