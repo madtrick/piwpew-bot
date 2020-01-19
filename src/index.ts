@@ -60,6 +60,10 @@ channel.on('open', function open (): void {
   botImport.then(({ bot }) => {
     let state = { botState : {} }
 
+    if (bot.initState !== undefined) {
+      state.botState = bot.initState()
+    }
+
     channel.on('message', function handleMessage (json: string): void {
       const message = JSON.parse(json)
 

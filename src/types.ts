@@ -8,6 +8,8 @@ export interface Position {
 export type Rotation = number
 
 export interface BotAPI<S> {
+  initState?: () => S
+
   handlers: {
     radarScanNotification?: (
       scan: {

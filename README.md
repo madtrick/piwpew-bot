@@ -91,10 +91,12 @@ TODO: Should a mine hit also affect other players which are in the explosion rad
 
 ## Writing a bot
 
-To write a bot all you have to do is implement the following interface. The methods in the interface map to the request's responses and notifications introduced above.
+To write a bot all you have to do is implement the parts you want from the following interface. The methods in the interface map to the request's responses and notifications introduced above.
 
 ```typescript
 interface BotAPI<S> {
+  initState?: () => S
+
   handlers: {
     radarScanNotification?: (
       scan: {
@@ -143,9 +145,15 @@ interface BotAPI<S> {
 
 ```
 
+For a list of all the types mentioned in this interface check: [types](./src/types.ts) and [requests](./src/requests.ts)
 
+### Bot registration
 
-For a list of all the types mentioned in this interface check: [types]() and [requests]()
+You don't have to take care of registering the bot in the game, the library will take care of doing that for you.
+
+### Bot state
+
+Each handler as an argument any state that you want to keep between handler invocations.  Each handler must return the new state that will be passed in as an argument to the next handler invocation. You can init the state before receiving any message from the game engine by implementing the `initState` method. The default bot state is an empty object `{}`.
 
 ## Usage
 
