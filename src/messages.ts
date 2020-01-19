@@ -98,9 +98,9 @@ export interface RadarScanNotificationMessage {
   type: MessageTypes.Notification
   id: NotificationTypes.RadarScan
   data: {
-    players: { position: Position }[]
+    players: { position: Position, id: string, rotation: Rotation }[]
     unknown: { position: Position }[]
-    shots: { position: Position }[]
+    shots: { position: Position, rotation: Rotation }[]
   }
 }
 

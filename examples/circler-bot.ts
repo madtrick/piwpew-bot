@@ -2,6 +2,7 @@ import chalk from 'chalk'
 
 import {
   BotAPI,
+  RadarScanNotification,
   SuccessfulRegisterPlayerResponse,
   FailedRegisterPlayerResponse,
   SuccessfulMovePlayerResponse,
@@ -327,7 +328,7 @@ export const bot: BotAPI<any> = {
       throw new Error('unexpected status')
     },
 
-    radarScanNotification: (_scan: { players: { position: Position }[], shots: { position: Position }[], unknown: { position: Position }[] }, state: State<Status>): { state: State<Status>, requests: Request[] } => {
+    radarScanNotification: (_data: RadarScanNotification, state: State<Status>): { state: State<Status>, requests: Request[] } => {
       console.log(chalk.cyan('RadarScanNotification'))
       return { state, requests: [] }
     },

@@ -12,12 +12,7 @@ export interface BotAPI<S> {
 
   handlers: {
     radarScanNotification?: (
-      scan: {
-        players: { position: Position }[],
-        shots: { position: Position }[],
-        unknown: { position: Position }[]
-        // TODO include mines
-      },
+      data: RadarScanNotification,
       state: S
     ) => { state: S, requests: Request[] }
 
@@ -56,6 +51,14 @@ export interface BotAPI<S> {
     startGameNotification?: (state: S) => { state: S, requests: Request[] }
 
     joinGameNotification?: (state: S) => { state: S, requests: Request[] }
+  }
+}
+
+export interface RadarScanNotification {
+  data: {
+    players: { position: Position, id: string, rotation: Rotation }[]
+    shots: { position: Position, rotation: Rotation }[]
+    unknown: { position: Position }[]
   }
 }
 

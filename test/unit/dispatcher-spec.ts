@@ -333,10 +333,10 @@ describe('Message dispatcher', () => {
       type: MessageTypes.Notification,
       id: NotificationTypes.RadarScan,
       data: {
-        players: [],
-        shots: [],
-        mines: [],
-        unknown: []
+        players: [{ position: { x: 10, y: 20 }, rotation: 45, id: 'player-1' }],
+        shots: [{ position: { x: 36, y: 37 }, rotation: 90 }],
+        mines: [{ position: { x: 90, y: 90 } }],
+        unknown: [{ x: 90, y: 90 }]
       }
     }
     const bot = {
@@ -350,7 +350,7 @@ describe('Message dispatcher', () => {
       messageDispatcher(message, bot, context)
 
       expect(bot.handlers.radarScanNotification).to.have.been.calledOnceWith(
-        message.data,
+        { data: message.data },
         context.botState
       )
     })

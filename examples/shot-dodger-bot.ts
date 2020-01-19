@@ -2,6 +2,7 @@ import chalk from 'chalk'
 
 import {
   BotAPI,
+  RadarScanNotification,
   SuccessfulRegisterPlayerResponse,
   FailedRegisterPlayerResponse,
   SuccessfulMovePlayerResponse,
@@ -262,11 +263,7 @@ export const bot: BotAPI<any> = {
     },
 
     radarScanNotification: (
-      scan: {
-        players: { position: Position }[],
-        shots: { position: Position }[],
-        unknown: { position: Position }[]
-      },
+      data: RadarScanNotification,
       state: State<Exclude<Status, Status.NotStarted | Status.Unregistered>>
     ): { state: State<Status>, requests: Request[] } => {
       console.log(chalk.cyan('RadarScanNotification'))
@@ -277,7 +274,7 @@ export const bot: BotAPI<any> = {
       const approximatedNextPosition = approximateNextPosition({ x: x + 3, y: y + 3 }, state.rotation)
       const oldStatus = state.status
 
-      state.radarData.players = scan.players
+      state.radarData.players = data.data.players
 
       if (state.status === Status.AvoidingShot && state.avoidingShotStatus === AvoidingShotStatus.Backtracked) {
         state.status = state.statusData.currentStatus
@@ -285,7 +282,7 @@ export const bot: BotAPI<any> = {
       }
 
       if (state.status !== Status.AvoidingShot) {
-        const possibleShotCollition = scan.shots.find((shot) => {
+        const possibleShotCollition = data.data.shots.find((shot) => {
           const shotHit = circlesIntersect(
             { center: approximatedNextPosition, radius: 16 },
             { center: shot.position, radius: 1 }
@@ -376,7 +373,7 @@ export const bot: BotAPI<any> = {
       // }
 
       currentRadarData.players.forEach((previouslyScannedPlayer) => {
-        scan.players.forEach((scannedPlayer) => {
+        data.data.players.forEach((scannedPlayer) => {
           // This only works if there's one player in the radar
           const xDelta = Math.abs(scannedPlayer.position.x - previouslyScannedPlayer.position.x)
           const yDelta = Math.abs(scannedPlayer.position.y - previouslyScannedPlayer.position.y)
@@ -435,7 +432,7 @@ export const bot: BotAPI<any> = {
                 ...state,
                 rotation: rotationToCorner,
                 radarData: {
-                  players: scan.players
+                  players: data.data.players
                 },
                 status: Status.RotateToCorner,
                 statusData: {

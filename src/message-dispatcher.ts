@@ -238,7 +238,7 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
     }
 
     const { data } = message
-    const { state: newBotState, requests: [request] } = bot.handlers.radarScanNotification(data, context.botState)
+    const { state: newBotState, requests: [request] } = bot.handlers.radarScanNotification({ data }, context.botState)
     let messages: RequestMessage[] = []
     const messageFromRequest = requestToMessage(request)
 
