@@ -32,6 +32,13 @@ const generateRequestMessage = (fn: (message: any, request: any) => void) => {
         }
       },
       {
+        request: { type: RequestTypes.DeployMine },
+        message: {
+          type: MessageTypes.Request,
+          id: MessageRequestTypes.DeployMine
+        }
+      },
+      {
         request: { type: RequestTypes.Rotate, data: { rotation: 45 } },
         message: {
           type: MessageTypes.Request,
@@ -274,6 +281,47 @@ describe('Message dispatcher', () => {
 
     it('returns the request transformed as a message', generateRequestMessage((request, expectedMessage) => {
       bot.handlers.shootResponse.returns({ state: {}, requests: [request] })
+      const { messages } = messageDispatcher(message, bot, context)
+
+      expect(messages[0]).to.eql(expectedMessage)
+    }))
+  })
+
+  describe('DeployMine response', () => {
+    const message = {
+      type: MessageTypes.Response,
+      id: ResponseTypes.DeployMine,
+      success: true,
+      data: {
+        mines: 2
+      }
+    }
+    const bot = {
+      handlers: {
+        deployMineResponse: sinon.stub().returns({ state: {}, requests: [] })
+      }
+    }
+    const context = { botState: {} }
+
+    it('dispatchs the message', () => {
+      messageDispatcher(message, bot, context)
+
+      expect(bot.handlers.deployMineResponse).to.have.been.calledOnceWith(
+        { success: true, data: { mines: 2 } },
+        context.botState
+      )
+    })
+
+    it('returns the new state', () => {
+      const state = { foo: 'bar' }
+      bot.handlers.deployMineResponse.returns({ state, requests: [] })
+      const { newBotState } = messageDispatcher(message, bot, context)
+
+      expect(newBotState).to.eql(state)
+    })
+
+    it('returns the request transformed as a message', generateRequestMessage((request, expectedMessage) => {
+      bot.handlers.deployMineResponse.returns({ state: {}, requests: [request] })
       const { messages } = messageDispatcher(message, bot, context)
 
       expect(messages[0]).to.eql(expectedMessage)

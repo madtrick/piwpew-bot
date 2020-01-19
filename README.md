@@ -67,9 +67,7 @@ Fire a shot. The game engine replies with a response object telling if the shot 
 
 #### Deploy mine
 
-Deploy a mine. The game engine replies with a `Response` object telling if the mine was deployed.
-
-TODO: include number of remaining mines in the response from the server
+Deploy a mine. The game engine replies with a `Response` object telling if the mine was deployed together with the number of remaining mines.
 
 ### Notifications
 
@@ -127,6 +125,11 @@ interface BotAPI<S> {
       state: S
     ) => { state: S, requests: Request[] }
 
+		deployMineResponse?: (
+      data: SuccessfulDeployMineResponse | FailedDeployMineResponse,
+      state: S
+    ) => { state: S, requests: Request[] }
+
 		shotHitNotification?: (
       data: PlayerShotHitNotification,
       state: S
@@ -139,6 +142,8 @@ interface BotAPI<S> {
 }
 
 ```
+
+
 
 For a list of all the types mentioned in this interface check: [types]() and [requests]()
 

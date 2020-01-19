@@ -19,7 +19,8 @@ export enum ResponseTypes {
   RegisterPlayer = 'RegisterPlayer',
   MovePlayer = 'MovePlayer',
   RotatePlayer = 'RotatePlayer',
-  Shoot = 'Shoot'
+  Shoot = 'Shoot',
+  DeployMine = 'DeployMine'
 }
 
 export enum NotificationTypes {
@@ -122,6 +123,15 @@ export interface DeployMineRequestMessage {
   id: RequestTypes.DeployMine
 }
 
+export interface DeployMineResponseMessage {
+  type: MessageTypes.Response
+  id: ResponseTypes.Shoot
+  success: boolean
+  data: {
+    mines: number
+  }
+}
+
 export interface StartGameNofiticationMessage {
   type: MessageTypes.Notification
   id: NotificationTypes.StartGame
@@ -176,7 +186,13 @@ export function isJoinGameNotificationMessage (message: any): message is JoinGam
 export function isShootResponseMessage (message: any): message is ShootResponseMessage {
   const { type, id } = message
 
-  return type === MessageTypes.Response && id === 'Shoot'
+  return type === MessageTypes.Response && id === ResponseTypes.Shoot
+}
+
+export function isDeployMineResponseMessage (message: any): message is DeployMineResponseMessage {
+  const { type, id } = message
+
+  return type === MessageTypes.Response && id === ResponseTypes.DeployMine
 }
 
 export function isPlayerShotHitNotificationMessage (message: any): message is PlayerShotHitNotificationMessage {

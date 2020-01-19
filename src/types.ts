@@ -39,6 +39,11 @@ export interface BotAPI<S> {
       state: S
     ) => { state: S, requests: Request[] }
 
+    deployMineResponse?: (
+      data: SuccessfulDeployMineResponse | FailedDeployMineResponse,
+      state: S
+    ) => { state: S, requests: Request[] }
+
     shotHitNotification?: (
       data: PlayerShotHitNotification,
       state: S
@@ -97,6 +102,17 @@ export interface SuccessfulShootResponse {
 }
 
 export interface FailedShootResponse {
+  success: false
+}
+
+export interface SuccessfulDeployMineResponse {
+  success: true
+  data: {
+    mines: number
+  }
+}
+
+export interface FailedDeployMineResponse {
   success: false
 }
 

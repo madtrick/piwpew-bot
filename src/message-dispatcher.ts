@@ -22,6 +22,7 @@ import {
   isStartGameNotificationMessage,
   isJoinGameNotificationMessage,
   isShootResponseMessage,
+  isDeployMineResponseMessage,
   isPlayerShotHitNotificationMessage
 } from './messages'
 
@@ -196,6 +197,25 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
 
     const { state: newBotState, requests: [request] } = bot.handlers.shootResponse(
       { success: message.success, data: { shots: message.data.shots } },
+      context.botState
+    )
+    let messages: RequestMessage[] = []
+    const messageFromRequest = requestToMessage(request)
+
+    if (messageFromRequest) {
+      messages = [messageFromRequest]
+    }
+
+    return { newBotState, messages }
+  }
+
+  if (isDeployMineResponseMessage(message)) {
+    if (!bot.handlers.deployMineResponse) {
+      return { newBotState: context.botState, messages: [] }
+    }
+
+    const { state: newBotState, requests: [request] } = bot.handlers.deployMineResponse(
+      { success: message.success, data: { mines: message.data.mines } },
       context.botState
     )
     let messages: RequestMessage[] = []
