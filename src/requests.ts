@@ -24,6 +24,7 @@ export interface MoveRequest {
   type: RequestTypes.Move
   data: {
     direction: MovementDirection
+    withTurbo: boolean
   }
 }
 
@@ -41,10 +42,11 @@ export function rotateRequest (rotation: Rotation): RotateRequest {
   return { type: RequestTypes.Rotate, data: { rotation } }
 }
 
-export function moveForwardRequest (): MoveRequest {
-  return { type: RequestTypes.Move, data: { direction: MovementDirection.Forward } }
+export function moveForwardRequest (options: { withTurbo: boolean }): MoveRequest {
+  console.log(options)
+  return { type: RequestTypes.Move, data: { direction: MovementDirection.Forward, ...options } }
 }
 
-export function moveBackwardRequest (): MoveRequest {
-  return { type: RequestTypes.Move, data: { direction: MovementDirection.Backward } }
+export function moveBackwardRequest (options: { withTurbo: boolean }): MoveRequest {
+  return { type: RequestTypes.Move, data: { direction: MovementDirection.Backward, ...options } }
 }

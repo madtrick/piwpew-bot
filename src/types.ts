@@ -77,15 +77,20 @@ export interface FailedRegisterPlayerResponse {
 }
 
 export interface SuccessfulMovePlayerResponse {
-  success: false
-  data: string
+  success: true
+  data: {
+    tokens: number
+    position: Position
+    request: {
+      withTurbo: boolean
+      cost: number
+    }
+  }
 }
 
 export interface FailedMovePlayerResponse {
-  success: true
-  data: {
-    position: Position
-  }
+  success: false
+  data: string
 }
 
 export interface SuccessfulRotatePlayerResponse {

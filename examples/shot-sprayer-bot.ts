@@ -120,7 +120,7 @@ export const bot: BotAPI<any> = {
         } else {
           return {
             state,
-            requests: [moveForwardRequest()]
+            requests: [moveForwardRequest({ withTurbo: false })]
           }
         }
       }
@@ -161,7 +161,7 @@ export const bot: BotAPI<any> = {
           ...state,
           status: Status.MovingToArenaCenter
         },
-        requests: [moveForwardRequest()]
+        requests: [moveForwardRequest({ withTurbo: false })]
       }
     },
 

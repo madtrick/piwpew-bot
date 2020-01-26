@@ -222,7 +222,7 @@ export const bot: BotAPI<any> = {
                 nextCirclePoint: state.statusData.nextCirclePoint
               }
             },
-            requests: [moveForwardRequest()]
+            requests: [moveForwardRequest({ withTurbo: false })]
           }
         }
       }
@@ -258,7 +258,7 @@ export const bot: BotAPI<any> = {
                 destination: state.statusData.destination
               }
             },
-            requests: [moveForwardRequest()]
+            requests: [moveForwardRequest({ withTurbo: false })]
           }
         }
       }
@@ -307,7 +307,7 @@ export const bot: BotAPI<any> = {
               destination: closestIntersectionPoint
             }
           },
-          requests: [moveForwardRequest()]
+          requests: [moveForwardRequest({ withTurbo: false })]
         }
       }
 
@@ -321,7 +321,7 @@ export const bot: BotAPI<any> = {
               nextCirclePoint: state.statusData.nextCirclePoint
             }
           },
-          requests: [moveForwardRequest()]
+          requests: [moveForwardRequest({ withTurbo: false })]
         }
       }
 

@@ -34,7 +34,7 @@ type RequestMessage = MovePlayerRequestMessage | ShootRequestMessage | DeployMin
 // function requestToMessage (request: DeployMineRequest): DeployMineRequestMessage
 function requestToMessage (request: Request | undefined): RequestMessage | undefined {
   if (request && request.type === RequestTypes.Move) {
-    return move(request.data.direction)
+    return move(request.data.direction, request.data.withTurbo)
   }
 
   if (request && request.type === RequestTypes.Shoot) {
@@ -52,13 +52,14 @@ function requestToMessage (request: Request | undefined): RequestMessage | undef
   return undefined
 }
 
-function move (direction: MovementDirection): MovePlayerRequestMessage {
+function move (direction: MovementDirection, withTurbo: boolean): MovePlayerRequestMessage {
   const data: MovePlayerRequestMessage = {
     type: MessageTypes.Request,
     id: MessageRequestTypes.MovePlayer,
     data: {
       movement: {
-        direction: direction
+        direction,
+        withTurbo
       }
     }
   }
@@ -127,7 +128,7 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
       let responseMessage
 
       if (request && request.type === RequestTypes.Move) {
-        responseMessage = move(request.data.direction)
+        responseMessage = move(request.data.direction, false)
       }
 
       if (responseMessage) {
@@ -145,19 +146,20 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
 
     if (message.success === false) {
       const { state: newBotState } = bot.handlers.movePlayerResponse(
-        { success: message.success, data: 'Failed to move player' },
+        { success: false, data: 'Failed to move player' },
         context.botState
       )
 
       return { newBotState, messages: [] }
     } else {
-      if (typeof message.details !== 'object') {
+      if (typeof message.data !== 'object') {
         throw new Error('invalid response message')
       }
 
-      const { position } = message.details
+      const { position, tokens } = message.data.component.details
+      const requestDetails = message.data.request
       const { state: newBotState, requests: [request] } = bot.handlers.movePlayerResponse(
-        { success: true, data: { position } },
+        { success: true, data: { position, tokens, request: requestDetails } },
         context.botState
       )
       let messages: RequestMessage[] = []

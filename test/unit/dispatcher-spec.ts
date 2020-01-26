@@ -13,13 +13,14 @@ const generateRequestMessage = (fn: (message: any, request: any) => void) => {
   return () => {
     [
       {
-        request: { type: RequestTypes.Move, data: { direction: MovementDirection.Forward } },
+        request: { type: RequestTypes.Move, data: { direction: MovementDirection.Forward, withTurbo: false } },
         message: {
           type: MessageTypes.Request,
           id: MessageRequestTypes.MovePlayer,
           data: {
             movement: {
-              direction: MovementDirection.Forward
+              direction: MovementDirection.Forward,
+              withTurbo: false
             }
           }
         }
@@ -169,8 +170,17 @@ describe('Message dispatcher', () => {
       type: MessageTypes.Response,
       id: ResponseTypes.MovePlayer,
       success: true,
-      details: {
-        position: { x: 100, y: 100 }
+      data: {
+        component: {
+          details: {
+            position: { x: 100, y: 100 },
+            tokens: 100
+          }
+        },
+        request: {
+          withTurbo: true,
+          cost: 3
+        }
       }
     }
     const bot = {
@@ -184,7 +194,17 @@ describe('Message dispatcher', () => {
       messageDispatcher(message, bot, context)
 
       expect(bot.handlers.movePlayerResponse).to.have.been.calledOnceWith(
-        { success: true, data: { position: message.details.position } },
+        {
+          success: true,
+          data: {
+            tokens: 100,
+            position: message.data.component.details.position,
+            request: {
+              withTurbo: true,
+              cost: 3
+            }
+          }
+        },
         context.botState
       )
     })
