@@ -43,7 +43,6 @@ export function rotateRequest (rotation: Rotation): RotateRequest {
 }
 
 export function moveForwardRequest (options: { withTurbo: boolean }): MoveRequest {
-  console.log(options)
   return { type: RequestTypes.Move, data: { direction: MovementDirection.Forward, ...options } }
 }
 
