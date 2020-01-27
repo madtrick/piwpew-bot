@@ -155,7 +155,14 @@ export interface DeployMineResponseMessage {
   id: ResponseTypes.Shoot
   success: boolean
   data: {
-    mines: number
+    component: {
+      details: {
+        tokens: number
+      }
+    }
+    request: {
+      cost: number
+    }
   }
 }
 

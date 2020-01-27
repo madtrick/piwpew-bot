@@ -127,12 +127,16 @@ export interface FailedShootResponse {
 export interface SuccessfulDeployMineResponse {
   success: true
   data: {
-    mines: number
+    tokens: number
+    request: {
+      cost: number
+    }
   }
 }
 
 export interface FailedDeployMineResponse {
   success: false
+  data: string
 }
 
 export interface PlayerShotHitNotification {

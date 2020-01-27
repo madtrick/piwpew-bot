@@ -345,7 +345,14 @@ describe('Message dispatcher', () => {
       id: ResponseTypes.DeployMine,
       success: true,
       data: {
-        mines: 2
+        component: {
+          details: {
+            tokens: 3
+          }
+        },
+        request: {
+          cost: 2
+        }
       }
     }
     const bot = {
@@ -359,7 +366,15 @@ describe('Message dispatcher', () => {
       messageDispatcher(message, bot, context)
 
       expect(bot.handlers.deployMineResponse).to.have.been.calledOnceWith(
-        { success: true, data: { mines: 2 } },
+        {
+          success: true,
+          data: {
+            tokens: message.data.component.details.tokens,
+            request: {
+              cost: message.data.request.cost
+            }
+          }
+        },
         context.botState
       )
     })
