@@ -6,7 +6,7 @@ Framework to build bots for Pewpew
 
 Pewpew is a game where bots, coded by you or others, fight agains each other. The game dynamics are quite simple:
 
-1. Your bot registers in the game.
+1. Your bot registers in the game. This is automatically done for you by the framework.
 2. The game engine notifies the bot when the game starts.
 3. Your bot sends requests to the game engine. Requests can be: move forward, move backward, shoot, etc.
 4. The game engine takes all the requests received in one tick, calculates the new game state, evaluates the requests with these new state and sends the appropiate responses.
@@ -38,6 +38,7 @@ Bots are the players of the game. They interact with the game by sending request
 - Life, starts at `100` and decrements with each shot or mine hit.
 - Position, coordinates of the bot in the game arena.
 - Rotation, orientation of the bot.
+- Tokens, currency used to execute actions.
 - Shots, number of available shots TODO, how many initial shots.
 - Mines, number of available mines TODO, how many initial mines.
 
@@ -55,7 +56,9 @@ Register the player in the game. The game engine replies with a `Response` objec
 
 #### Move
 
-Move the player in the desired direction. The direction can be `forward` or `backward`. The game engine replies with a `Response` object telling if the movement was successful together with the new player coordinates.
+Move the player in the desired direction. The direction can be `forward` or `backward`. The game engine replies with a `Response` object telling if the movement was successful together with the new player coordinates and the tokens cost of the movement.
+
+The player can request to move faster by setting the request flag `withTurbo` to `true`. Note that using the turbo increases the cost of the movement.
 
 #### Rotate
 

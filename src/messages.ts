@@ -55,6 +55,7 @@ export interface MovePlayerRequestMessage {
   data: {
     movement: {
       direction: MovementDirection
+      withTurbo?: boolean
     }
   }
 }
@@ -72,8 +73,17 @@ export interface MovePlayerResponseMessage {
   id: ResponseTypes.MovePlayer
   success: boolean
   // details are only present if `success` === true
-  details?: {
-    position: Position
+  data?: {
+    component: {
+      details: {
+        position: Position
+        tokens: number
+      }
+    }
+    request: {
+      withTurbo: boolean
+      cost: number
+    }
   }
 }
 

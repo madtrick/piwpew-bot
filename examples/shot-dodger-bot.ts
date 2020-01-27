@@ -159,7 +159,7 @@ export const bot: BotAPI<any> = {
                 position: data.data.position
               },
               // TODO the request should depend on the current status
-              requests: [moveForwardRequest()]
+              requests: [moveForwardRequest({ withTurbo: false })]
             }
           } else {
             return {
@@ -167,7 +167,7 @@ export const bot: BotAPI<any> = {
                 ...state,
                 position: data.data.position
               },
-              requests: [moveForwardRequest()]
+              requests: [moveForwardRequest({ withTurbo: false })]
             }
           }
         } else {
@@ -213,7 +213,7 @@ export const bot: BotAPI<any> = {
               ...state,
               position: data.data.position
             },
-            requests: [moveForwardRequest()]
+            requests: [moveForwardRequest({ withTurbo: false })]
           }
         }
       }
@@ -246,7 +246,7 @@ export const bot: BotAPI<any> = {
               cornerIndex: state.statusData.cornerIndex
             }
           },
-          requests: [moveForwardRequest()]
+          requests: [moveForwardRequest({ withTurbo: false })]
         }
       }
 
@@ -254,7 +254,7 @@ export const bot: BotAPI<any> = {
         if (state.avoidingShotStatus === AvoidingShotStatus.Pivoting) {
           return {
             state,
-            requests: [moveForwardRequest()]
+            requests: [moveForwardRequest({ withTurbo: false })]
           }
         }
       }
@@ -456,7 +456,7 @@ export const bot: BotAPI<any> = {
           if (state.status === Status.MovingToCorner) {
             return {
               state,
-              requests: [moveForwardRequest()]
+              requests: [moveForwardRequest({ withTurbo: false })]
             }
           } else if (state.status === Status.RotateToCorner) {
             return { state, requests: [rotateRequest(state.statusData.rotationToCorner)] }
