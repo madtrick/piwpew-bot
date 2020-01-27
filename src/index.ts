@@ -50,7 +50,7 @@ if (argv.r) {
 }
 
 const playerId = argv.i as string
-const messagesLogPath = path.join(__dirname, argv.i + '-messages.log')
+const messagesLogPath = path.join(process.cwd(), argv.i + '-messages.log')
 
 channel.on('open', function open (): void {
   truncateMessagesFile()
