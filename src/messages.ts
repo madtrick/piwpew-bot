@@ -91,8 +91,17 @@ export interface RotatePlayerResponseMessage {
   type: MessageTypes.Response
   id: 'RotatePlayer'
   success: boolean
-  data: {
-    rotation: number
+  // 'data' is only present if the rotation was successful
+  data?: {
+    component: {
+      details: {
+        rotation: number
+        tokens: number
+      }
+    }
+    request: {
+      cost: number
+    }
   }
 }
 

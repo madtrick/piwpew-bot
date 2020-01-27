@@ -96,12 +96,17 @@ export interface FailedMovePlayerResponse {
 export interface SuccessfulRotatePlayerResponse {
   success: true
   data: {
+    tokens: number
     rotation: number
+    request: {
+      cost: number
+    }
   }
 }
 
 export interface FailedRotatePlayerResponse {
   success: false
+  data: string
 }
 
 export interface SuccessfulShootResponse {
