@@ -213,8 +213,31 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
       return { newBotState: context.botState, messages: [] }
     }
 
+
+    if (message.success === false) {
+      // TODO handle possible response messages
+      const { state: newBotState } = bot.handlers.shootResponse(
+        { success: false, data: 'Failed to shoot' },
+        context.botState
+      )
+
+      return { newBotState, messages: [] }
+    }
+
+    if (typeof message.data !== 'object') {
+      throw new Error('invalid response message')
+    }
+
+    const { tokens } = message.data.component.details
+    const requestDetails = message.data.request
     const { state: newBotState, requests: [request] } = bot.handlers.shootResponse(
-      { success: message.success, data: { shots: message.data.shots } },
+      {
+        success: message.success,
+        data: {
+          tokens,
+          request: requestDetails
+        }
+      },
       context.botState
     )
     let messages: RequestMessage[] = []

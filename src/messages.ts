@@ -132,8 +132,16 @@ export interface ShootResponseMessage {
   type: MessageTypes.Response
   id: ResponseTypes.Shoot
   success: boolean
-  data: {
-    shots: number
+  // 'data' is only present if the request was successful
+  data?: {
+    component: {
+      details: {
+        tokens: number
+      }
+    }
+    request: {
+      cost: number
+    }
   }
 }
 
