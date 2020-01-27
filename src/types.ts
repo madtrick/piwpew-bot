@@ -96,34 +96,47 @@ export interface FailedMovePlayerResponse {
 export interface SuccessfulRotatePlayerResponse {
   success: true
   data: {
+    tokens: number
     rotation: number
+    request: {
+      cost: number
+    }
   }
 }
 
 export interface FailedRotatePlayerResponse {
   success: false
+  data: string
 }
 
 export interface SuccessfulShootResponse {
   success: true
   data: {
-    shots: number
+    tokens: number
+    request: {
+      cost: number
+    }
   }
 }
 
 export interface FailedShootResponse {
   success: false
+  data: string
 }
 
 export interface SuccessfulDeployMineResponse {
   success: true
   data: {
-    mines: number
+    tokens: number
+    request: {
+      cost: number
+    }
   }
 }
 
 export interface FailedDeployMineResponse {
   success: false
+  data: string
 }
 
 export interface PlayerShotHitNotification {

@@ -231,7 +231,15 @@ describe('Message dispatcher', () => {
       id: ResponseTypes.RotatePlayer,
       success: true,
       data: {
-        rotation: 123
+        component: {
+          details: {
+            rotation: 123,
+            tokens: 456
+          }
+        },
+        request: {
+          cost: 100
+        }
       }
     }
     const bot = {
@@ -245,7 +253,16 @@ describe('Message dispatcher', () => {
       messageDispatcher(message, bot, context)
 
       expect(bot.handlers.rotatePlayerResponse).to.have.been.calledOnceWith(
-        { success: true, data: { rotation: message.data.rotation } },
+        {
+          success: true,
+          data: {
+            rotation: message.data.component.details.rotation,
+            tokens: message.data.component.details.tokens,
+            request: {
+              cost: message.data.request.cost
+            }
+          }
+        },
         context.botState
       )
     })
@@ -272,7 +289,14 @@ describe('Message dispatcher', () => {
       id: ResponseTypes.Shoot,
       success: true,
       data: {
-        shots: 10
+        component: {
+          details: {
+            tokens: 10
+          }
+        },
+        request: {
+          cost: 2
+        }
       }
     }
     const bot = {
@@ -286,7 +310,15 @@ describe('Message dispatcher', () => {
       messageDispatcher(message, bot, context)
 
       expect(bot.handlers.shootResponse).to.have.been.calledOnceWith(
-        { success: true, data: { shots: 10 } },
+        {
+          success: true,
+          data: {
+            tokens: message.data.component.details.tokens,
+            request: {
+              cost: message.data.request.cost
+            }
+          }
+        },
         context.botState
       )
     })
@@ -313,7 +345,14 @@ describe('Message dispatcher', () => {
       id: ResponseTypes.DeployMine,
       success: true,
       data: {
-        mines: 2
+        component: {
+          details: {
+            tokens: 3
+          }
+        },
+        request: {
+          cost: 2
+        }
       }
     }
     const bot = {
@@ -327,7 +366,15 @@ describe('Message dispatcher', () => {
       messageDispatcher(message, bot, context)
 
       expect(bot.handlers.deployMineResponse).to.have.been.calledOnceWith(
-        { success: true, data: { mines: 2 } },
+        {
+          success: true,
+          data: {
+            tokens: message.data.component.details.tokens,
+            request: {
+              cost: message.data.request.cost
+            }
+          }
+        },
         context.botState
       )
     })
