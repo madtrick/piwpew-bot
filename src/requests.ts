@@ -49,3 +49,8 @@ export function moveForwardRequest (options: { withTurbo: boolean }): MoveReques
 export function moveBackwardRequest (options: { withTurbo: boolean }): MoveRequest {
   return { type: RequestTypes.Move, data: { direction: MovementDirection.Backward, ...options } }
 }
+
+export function shootRequest (): ShootRequest {
+  return { type: RequestTypes.Shoot }
+}
+

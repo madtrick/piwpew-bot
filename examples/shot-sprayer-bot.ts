@@ -15,11 +15,10 @@ import {
   Rotation
 } from '../src/types'
 import {
-  RequestTypes,
   Request,
-  ShootRequest,
   rotateRequest,
-  moveForwardRequest
+  moveForwardRequest,
+  shootRequest
 } from '../src/requests'
 import { calculateAngleBetweenPoints } from '../src/utils'
 
@@ -44,10 +43,6 @@ type StatusData<S> =
   never
 
 type State<S extends Status> = { position: Position, rotation: Rotation } & StatusData<S>
-
-function shootRequest (): ShootRequest {
-  return { type: RequestTypes.Shoot }
-}
 
 /*
  * I would like to specify the type of the bot
