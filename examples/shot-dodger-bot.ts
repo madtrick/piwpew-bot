@@ -18,7 +18,10 @@ import {
   moveForwardRequest
   // moveBackwardRequest
 } from '../src/requests'
-import { calculateAngleBetweenPoints } from '../src/utils'
+import {
+  calculateAngleBetweenPoints,
+  calculateDistanceBetweenTwoPoints
+} from '../src/utils'
 
 enum Status {
   Unregistered,
@@ -60,12 +63,6 @@ type RadarData<S> =
   { radarData: { players: { position: Position }[] } }
 
 type State<S extends Status> = { position: Position, rotation: Rotation } & RadarData<S> & StatusData<S>
-
-function calculateDistanceBetweenTwoPoints (pointA: Position, pointB: Position): number {
-  return Math.sqrt(
-    Math.pow(pointA.x - pointB.x, 2) + Math.pow(pointA.y - pointB.y, 2)
-  )
-}
 
 function approximateNextPosition (from: Position, rotation: Rotation): Position {
   const movementSpeed = 5

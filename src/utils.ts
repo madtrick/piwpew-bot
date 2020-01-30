@@ -71,3 +71,9 @@ export function calculateAngleBetweenPoints (pointA: Position, pointB: Position)
 
   return angleBetweenPoints
 }
+
+export function calculateDistanceBetweenTwoPoints (pointA: Position, pointB: Position): number {
+  return Math.sqrt(
+    Math.pow(pointA.x - pointB.x, 2) + Math.pow(pointA.y - pointB.y, 2)
+  )
+}
