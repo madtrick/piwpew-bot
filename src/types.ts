@@ -54,10 +54,21 @@ export interface BotAPI<S> {
   }
 }
 
+export interface ScannedPlayer {
+  id: string
+  position: Position
+  rotation: Rotation
+}
+
+export interface ScannedShot {
+  position: Position
+  rotation: Rotation
+}
+
 export interface RadarScanNotification {
   data: {
-    players: { position: Position, id: string, rotation: Rotation }[]
-    shots: { position: Position, rotation: Rotation }[]
+    players: ScannedPlayer[]
+    shots: ScannedShot[]
     unknown: { position: Position }[]
   }
 }
