@@ -4,13 +4,13 @@ Framework to build bots for Pewpew
 
 ## Game
 
-Pewpew is a game where bots, coded by you or others, fight agains each other. The game dynamics are quite simple:
+Pewpew is a game where bots, coded by you and others, fight agains each other. The game dynamics are quite simple:
 
 1. Your bot registers in the game. This is automatically done for you by the framework.
 2. The game engine notifies the bot when the game starts.
 3. Your bot sends requests to the game engine. Requests can be: move forward, move backward, shoot, etc.
-4. The game engine takes all the requests received in one tick, calculates the new game state, evaluates the requests with these new state and sends the appropiate responses.
-5. The bot receives the response and decides what to do next.
+4. The game engine takes all the requests received from the different players in one tick, evaluates the requests in the current game state and sends the appropiate responses and notifications.
+5. Your bot receives the response and decides what to do next.
 
 Steps 1 and 2 happen only once per game. 3, 4 and 5 repeat until the game ends or your bot is destroyed.
 
@@ -22,7 +22,7 @@ The pace of the game engine is driven by ticks, that is, the moments in time whe
 
 ### Game arena
 
-The arena is the game happens. Bots can move freely within the boundaries of the arena. 
+The arena is where the game takes place. Bots can move freely within the boundaries of the arena. 
 
 Positions in the arena are returned as a pair of coordinates `(x, y)`. These coordinates are relative to the origin of the arena in the bottom left corner (`(0,0)`). Moving to the right from the origin increases the `x` coordinate. Moving up from the origin increases the `y` coordinate.
 
@@ -38,21 +38,24 @@ Bots are the players of the game. They interact with the game by sending request
 - Life, starts at `100` and decrements with each shot or mine hit.
 - Position, coordinates of the bot in the game arena.
 - Rotation, orientation of the bot.
-- Tokens, currency used to execute actions.
-- Shots, number of available shots TODO, how many initial shots.
-- Mines, number of available mines TODO, how many initial mines.
+- Tokens, currency used to execute actions. Tokens are used to:
+  - Shoot
+  - Deploy mines
+  - Move faster by using a turbo
 
 ### Bot requests
 
 Bots interact with the game engine by sending requests. The game engine validates the request, executes it and updates its internal state. A response is sent indicating if the request was successful or not. If the request was successful the response includes data that describes how the bot state changed as a consequence of it.
 
-Bots can only have one in-flight request per tick. That is, they shouldn't send a request before getting the response to a previous one, as later requests will overwrite previous ones. Basically bots have an inbox which can only hold one message at a time. 
+Bots can only have one in-flight request per tick. That is, they shouldn't send a request before getting the response to a previous one, as later requests will overwrite previous ones. Basically the game engine have an inbox per bot which can only hold one message at a time. 
 
 Responses are sent at the end of each tick.
 
 #### Register
 
 Register the player in the game. The game engine replies with a `Response` object telling if the player was registered or not. If the player was registered the response includes the initial position and rotation for the player.
+
+// TODO include initial tokens
 
 #### Move
 
@@ -62,15 +65,15 @@ The player can request to move faster by setting the request flag `withTurbo` to
 
 #### Rotate
 
-Rotate the player to a desired angle. The new angle has to be a value in the range `[0, 360]`. The game engine replies with a `Response` object telling if the rotation was successful together with the new player rotation.
+Rotate the player to a desired angle. The new angle has to be a value in the range `[0, 360]`. The game engine replies with a `Response` object telling if the rotation was successful together with the new player rotation and the tokens cost of the rotation.
 
 #### Shoot
 
-Fire a shot. The game engine replies with a response object telling if the shot was successful together with the number of remaining shots.
+Fire a shot. The game engine replies with a response object telling if the shot was successful together with the tokens cost of the shot.
 
 #### Deploy mine
 
-Deploy a mine. The game engine replies with a `Response` object telling if the mine was deployed together with the number of remaining mines.
+Deploy a mine. The game engine replies with a `Response` object telling if the mine was deployed together with the tokens cost of the mine deployment.
 
 ### Notifications
 
@@ -152,7 +155,7 @@ You don't have to take care of registering the bot in the game, the library will
 
 ### Bot state
 
-Each handler as an argument any state that you want to keep between handler invocations.  Each handler must return the new state that will be passed in as an argument to the next handler invocation. You can init the state before receiving any message from the game engine by implementing the `initState` method. The default bot state is an empty object `{}`.
+Each handler metho takes as an argument the bot state that you can use to keep information between handler invocations.  Each handler method must return the new state that will be passed in as an argument to the next handler invocation. You can init the state before receiving any message from the game engine by implementing the `initState` method. The default bot state is an empty object `{}`.
 
 ## Usage
 
