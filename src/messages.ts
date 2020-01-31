@@ -119,6 +119,7 @@ export interface RadarScanNotificationMessage {
   data: {
     players: { position: Position, id: string, rotation: Rotation }[]
     unknown: { position: Position }[]
+    mines: { position: Position }[]
     shots: { position: Position, rotation: Rotation }[]
   }
 }

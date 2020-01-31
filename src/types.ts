@@ -65,11 +65,20 @@ export interface ScannedShot {
   rotation: Rotation
 }
 
+export interface ScannedMine {
+  position: Position
+}
+
+export interface ScannedUnknown {
+  position: Position
+}
+
 export interface RadarScanNotification {
   data: {
     players: ScannedPlayer[]
     shots: ScannedShot[]
-    unknown: { position: Position }[]
+    mines: ScannedMine[]
+    unknown: ScannedUnknown[]
   }
 }
 

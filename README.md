@@ -82,8 +82,6 @@ Notifications are sent at the end of each tick.
 
 Notification sent to each player containing the players, shots, mines and also any other unknown objects detected in its proximity.
 
-TODO: add mines to the radar scan
-
 #### Shot hit
 
 Notification sent when a player is hit by a shot. The notification includes the coordinates of the shot as well as the remaining life of the player.
