@@ -34,7 +34,6 @@ function radiansToDegrees (radians: number): number {
 *
 */
 export function calculateAngleBetweenPoints (pointA: Position, pointB: Position): number {
-  console.log('calculateAngleBetweenPoints', pointA, pointB)
   // TODO remove that 0 default
   let angleBetweenPoints: number = 0
 
