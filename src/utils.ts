@@ -76,3 +76,13 @@ export function calculateDistanceBetweenTwoPoints (pointA: Position, pointB: Pos
     Math.pow(pointA.x - pointB.x, 2) + Math.pow(pointA.y - pointB.y, 2)
   )
 }
+
+/*
+ * Round with 5 decimal digits
+ */
+export function round (value: number): number {
+  const multiplier = Math.pow(10, 5)
+
+  return Math.round(multiplier * value) / multiplier
+}
+
