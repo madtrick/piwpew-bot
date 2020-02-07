@@ -2,6 +2,8 @@
 
 Framework to build bots for Pewpew
 
+![](./assets/bots.gif)
+
 ## Game
 
 Pewpew is a game where bots, coded by you and others, fight agains each other. The game dynamics are quite simple:
