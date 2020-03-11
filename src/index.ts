@@ -36,7 +36,7 @@ const argv = yargs
       alias: 'server',
       type: 'string',
       demand: false,
-      default: 'localhost:8889',
+      default: 'wss://game.piwpew.com',
       describe: 'Address of the game engine'
     }
   }).argv
@@ -46,7 +46,7 @@ if (argv.r) {
   channel = createLogChannel({ path: argv.r as string })
 } else {
   // TODO implement connection timeout
-  channel = new WebSocketChannel(`ws://${argv.server}`)
+  channel = new WebSocketChannel(`${argv.s}/ws/player`)
 }
 
 const playerId = argv.i as string
