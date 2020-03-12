@@ -1,7 +1,0 @@
-{
-  "defaultSeverity": "error",
-  "extends": ["@contentful/tslint-config-backend"],
-  "rules": {
-    "await-promise": [true, "RequestPromise"]
-  }
-}

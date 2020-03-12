@@ -1,105 +1,40 @@
 # About
 
-Framework to build bots for Pewpew
+Framework to build bots for [PiwPew](https://www.piwpew.com)
 
 ![](./assets/bots.gif)
 
+## Installation
+
+```bash
+npm install piwpew-bot
+```
+
 ## Game
 
-Pewpew is a game where bots, coded by you and others, fight agains each other. The game dynamics are quite simple:
+[PiwPew](https://www.piwpew.com) is a game where bots, coded by you and others, fight against each other. The game dynamics are quite simple:
 
 1. Your bot registers in the game. This is automatically done for you by the framework.
 2. The game engine notifies the bot when the game starts.
 3. Your bot sends requests to the game engine. Requests can be: move forward, move backward, shoot, etc.
-4. The game engine takes all the requests received from the different players in one tick, evaluates the requests in the current game state and sends the appropiate responses and notifications.
-5. Your bot receives the response and decides what to do next.
+4. The game engine takes all the requests received from the different players in one tick, evaluates the requests with the current game state and sends the appropiate responses and notifications.
+5. Your bot receives responses and notifications and decides what to do next.
 
 Steps 1 and 2 happen only once per game. 3, 4 and 5 repeat until the game ends or your bot is destroyed.
 
-TODO add gif
+### Game protocol
 
-### Ticks
+Bots interact with the game engine by sending [requests](https://github.com/madtrick/piwpew-docs/blob/master/README.md#requests). The game engine validates the requests, executes them and updates its internal state. If the request was successful the response includes data that describes how the bot state changed as a consequence of it. Responses are sent at the end of each [game tick](https://github.com/madtrick/piwpew-docs/blob/master/README.md#game-ticks).
 
-The pace of the game engine is driven by ticks, that is, the moments in time when the game state is updated and the messages received between the previous tick and the current one are processed.
+Bots can only have one in-flight request per game tick. That is, they shouldn't send a request before getting the response to a previous one, as later requests will overwrite previous ones.
 
-### Game arena
+The game engine sends [notifications](https://github.com/madtrick/piwpew-docs/blob/master/README.md#notifications) to bots in response to game events that happen asynchronously to requests.
 
-The arena is where the game takes place. Bots can move freely within the boundaries of the arena. 
-
-Positions in the arena are returned as a pair of coordinates `(x, y)`. These coordinates are relative to the origin of the arena in the bottom left corner (`(0,0)`). Moving to the right from the origin increases the `x` coordinate. Moving up from the origin increases the `y` coordinate.
-
-Rotations in the arena are returned in degrees (value in the range `[0, 360]`). Rotation values are relative to the origin.
-
-TODO example
-
-### Bots
-
-Bots are the players of the game. They interact with the game by sending requests to the game engine. Bots have the following properties:
-
-- Id, chosen by you.
-- Life, starts at `100` and decrements with each shot or mine hit.
-- Position, coordinates of the bot in the game arena.
-- Rotation, orientation of the bot.
-- Tokens, currency used to execute actions. Tokens are used to:
-  - Shoot
-  - Deploy mines
-  - Move faster by using a turbo
-
-### Bot requests
-
-Bots interact with the game engine by sending requests. The game engine validates the request, executes it and updates its internal state. A response is sent indicating if the request was successful or not. If the request was successful the response includes data that describes how the bot state changed as a consequence of it.
-
-Bots can only have one in-flight request per tick. That is, they shouldn't send a request before getting the response to a previous one, as later requests will overwrite previous ones. Basically the game engine have an inbox per bot which can only hold one message at a time. 
-
-Responses are sent at the end of each tick.
-
-#### Register
-
-Register the player in the game. The game engine replies with a `Response` object telling if the player was registered or not. If the player was registered the response includes the initial position and rotation for the player.
-
-// TODO include initial tokens
-
-#### Move
-
-Move the player in the desired direction. The direction can be `forward` or `backward`. The game engine replies with a `Response` object telling if the movement was successful together with the new player coordinates and the tokens cost of the movement.
-
-The player can request to move faster by setting the request flag `withTurbo` to `true`. Note that using the turbo increases the cost of the movement.
-
-#### Rotate
-
-Rotate the player to a desired angle. The new angle has to be a value in the range `[0, 360]`. The game engine replies with a `Response` object telling if the rotation was successful together with the new player rotation and the tokens cost of the rotation.
-
-#### Shoot
-
-Fire a shot. The game engine replies with a response object telling if the shot was successful together with the tokens cost of the shot.
-
-#### Deploy mine
-
-Deploy a mine. The game engine replies with a `Response` object telling if the mine was deployed together with the tokens cost of the mine deployment.
-
-### Notifications
-
-On each tick the game will send notifications to let players know of events which happened in the game. 
-
-Notifications are sent at the end of each tick.
-
-#### Radar scan
-
-Notification sent to each player containing the players, shots, mines and also any other unknown objects detected in its proximity.
-
-#### Shot hit
-
-Notification sent when a player is hit by a shot. The notification includes the coordinates of the shot as well as the remaining life of the player.
-
-#### Mine hit
-
-Notification sent when a player is hit by a mine. The notification includes the coordinates of the mine as well as the remaining life of the player.
-
-TODO: Should a mine hit also affect other players which are in the explosion radius
+Check out the [piwpew-docs](https://github.com/madtrick/piwpew-docs) for a reference documentation about requests and notifications.
 
 ## Writing a bot
 
-To write a bot all you have to do is implement the parts you want from the following interface. The methods in the interface map to the request's responses and notifications introduced above.
+To write a bot all you have to do is implement the parts you want from the following interface. The methods in the interface map to the request's responses and notifications sent by the game engine.
 
 ```typescript
 interface BotAPI<S> {
@@ -149,7 +84,7 @@ interface BotAPI<S> {
 
 ```
 
-For a list of all the types mentioned in this interface check: [types](./src/types.ts) and [requests](./src/requests.ts)
+For a list of all the types mentioned in this interface check: [types](./src/types.ts) and [requests](./src/requests.ts). The npm package exports the required type definitions to build a bot in TypeScript.
 
 ### Bot registration
 
@@ -157,25 +92,26 @@ You don't have to take care of registering the bot in the game, the library will
 
 ### Bot state
 
-Each handler metho takes as an argument the bot state that you can use to keep information between handler invocations.  Each handler method must return the new state that will be passed in as an argument to the next handler invocation. You can init the state before receiving any message from the game engine by implementing the `initState` method. The default bot state is an empty object `{}`.
+Each handler method takes as an argument the bot state that you can use to keep information between handler invocations.  Each handler method must return the new state that will be passed in as an argument to the next handler invocation. You can init the state before receiving any message from the game engine by implementing the `initState` method. The default bot state is an empty object `{}`.
 
 ## Usage
 
-Use the `bin/bot` tool to execute a bot writen with this framework.
+Use the `piwpew-bot` tool to run a bot writen with this framework. It works for bots written both in JavaScript or TypeScript.
 
 ```shell
-bin/bot -h
+$ piwpew-bot -h
 Options:
-  -i, --id      Bot id                              [string] [required]
-  -m, --module  Module implementing the BotAPI      [string] [required]
-  -r, --replay  Log file to be replayed                        [string]
+  --help        Show help                                              [boolean]
+  --version     Show version number                                    [boolean]
+  -i, --id      Bot id                                       [string] [required]
+  -m, --module  Module implementing the BotAPI               [string] [required]
+  -r, --replay  Log file to be replayed                                 [string]
   -s, --server  Address of the game engine
-                                   [string] [default: "localhost:8889"]
+                                     [string] [default: "wss://game.piwpew.com"]
+
 ```
 
 The framework will write a log file with all the messages sent and received by the bot. The log file will be named `<bot-id>-messages.log`.
-
-TODO write files to `./logs`
 
 ## Logs playback
 
@@ -184,4 +120,8 @@ If you want to you can replay the logs by running `bin/bot` with the `-r` flag. 
 ## Examples
 
 This repo contains several example bots in the folder `examples/`
+
+## License
+
+MIT
 

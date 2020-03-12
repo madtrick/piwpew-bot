@@ -1,21 +1,31 @@
 {
-  "name": "pewpew-bot",
+  "name": "piwpew-bot",
   "version": "0.0.0",
-  "description": "A dummy bot for pewpew",
-  "main": "index.js",
-  "scripts": {
-    "build": "rm -rf built && tsc",
-    "test": "mocha test/**/*-spec.ts"
+  "description": "Library to build bots for PiwPew",
+  "main": "built/index.js",
+  "types": "./built/index.d.ts",
+  "files": [
+    "/built",
+    "/bin"
+  ],
+  "bin": {
+    "bot": "./bin/bot"
   },
-  "author": "",
-  "license": "ISC",
+  "scripts": {
+    "build": "rm -rf built && tsc -p tsconfig-release.json --declaration",
+    "test": "mocha test/**/*-spec.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "author": {
+    "name": "Farruco Sanjurjo"
+  },
+  "license": "MIT",
   "dependencies": {
     "chalk": "^3.0.0",
     "ws": "^7.2.0",
     "yargs": "^15.0.1"
   },
   "devDependencies": {
-    "@contentful/tslint-config-backend": "^1.1.0",
     "@types/chai": "^4.2.5",
     "@types/chalk": "^2.2.0",
     "@types/lodash": "^4.14.148",
@@ -32,6 +42,10 @@
     "sinon-chai": "^3.3.0",
     "ts-node": "^8.5.2",
     "tslint": "^5.20.1",
+    "tslint-config-standard": "^9.0.0",
+    "tslint-eslint-rules": "^5.4.0",
+    "tslint-microsoft-contrib": "^6.2.0",
+    "tslint-no-unused-expression-chai": "^0.1.4",
     "typescript": "^3.7.4"
   }
 }
