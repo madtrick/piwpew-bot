@@ -1,7 +1,9 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as yargs from 'yargs'
+// TODO rename ./types to ./bot-api
 import { BotAPI } from './types'
+export * from './types'
 import { Channel, createLogChannel, WebSocketChannel } from './channel'
 import { messageDispatcher } from './message-dispatcher'
 

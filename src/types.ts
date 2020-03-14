@@ -1,4 +1,5 @@
 import { Request } from './requests'
+export { Request }
 
 export interface Position {
   x: number
