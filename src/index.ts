@@ -4,6 +4,7 @@ import * as yargs from 'yargs'
 // TODO rename ./types to ./bot-api
 import { BotAPI } from './types'
 export * from './types'
+export * from './utils'
 import { Channel, createLogChannel, WebSocketChannel } from './channel'
 import { messageDispatcher } from './message-dispatcher'
 
