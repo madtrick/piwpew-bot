@@ -37,15 +37,15 @@
     "@types/yargs": "^13.0.3",
     "chai": "^3.5.0",
     "dirty-chai": "^1.2.2",
+    "eslint": "^6.8.0",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
     "mocha": "^7.0.0",
     "sinon": "^7.5.0",
     "sinon-chai": "^3.3.0",
     "ts-node": "^8.5.2",
-    "tslint": "^5.20.1",
-    "tslint-config-standard": "^9.0.0",
-    "tslint-eslint-rules": "^5.4.0",
-    "tslint-microsoft-contrib": "^6.2.0",
-    "tslint-no-unused-expression-chai": "^0.1.4",
     "typescript": "^3.7.4"
   }
 }
