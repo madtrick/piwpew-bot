@@ -62,7 +62,7 @@ channel.on('open', function open (): void {
   const botImport: Promise<{ bot: BotAPI<any>}> = import(path.resolve(__dirname, path.relative(__dirname, argv.m)))
 
   botImport.then(({ bot }) => {
-    let state = { botState : {} }
+    const state = { botState : {} }
 
     if (bot.initState !== undefined) {
       state.botState = bot.initState()
