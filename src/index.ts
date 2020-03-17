@@ -1,11 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as yargs from 'yargs'
-// TODO rename ./types to ./bot-api
-import { BotAPI } from './types'
-export * from './types'
-export * from './utils'
-export { moveForwardRequest, rotateRequest } from './requests'
 import { Channel, createLogChannel, WebSocketChannel } from './channel'
 import { messageDispatcher } from './message-dispatcher'
 
@@ -14,6 +9,7 @@ import {
   RequestTypes,
   RegisterPlayerRequestMessage
 } from './messages'
+import { BotAPI } from './bot'
 
 
 const argv = yargs
