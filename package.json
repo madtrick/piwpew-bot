@@ -14,6 +14,7 @@
   "scripts": {
     "build": "rm -rf built && tsc -p tsconfig-release.json --declaration",
     "test": "mocha test/**/*-spec.ts",
+    "lint": "eslint 'src/**/*'",
     "prepublishOnly": "npm run build"
   },
   "author": {
@@ -35,6 +36,8 @@
     "@types/sinon-chai": "^3.2.3",
     "@types/ws": "^6.0.3",
     "@types/yargs": "^13.0.3",
+    "@typescript-eslint/eslint-plugin": "^2.24.0",
+    "@typescript-eslint/parser": "^2.23.0",
     "chai": "^3.5.0",
     "dirty-chai": "^1.2.2",
     "eslint": "^6.8.0",

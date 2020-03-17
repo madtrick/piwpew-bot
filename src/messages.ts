@@ -31,7 +31,7 @@ export enum NotificationTypes {
 }
 
 export interface RegisterPlayerRequestMessage {
-  type: MessageTypes.Request,
+  type: MessageTypes.Request
   id: RequestTypes.RegisterPlayer
   data: {
     id: string

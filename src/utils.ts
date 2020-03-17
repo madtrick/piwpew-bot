@@ -35,7 +35,7 @@ function radiansToDegrees (radians: number): number {
 */
 export function calculateAngleBetweenPoints (pointA: Position, pointB: Position): number {
   // TODO remove that 0 default
-  let angleBetweenPoints: number = 0
+  let angleBetweenPoints = 0
 
   if (pointA.x > pointB.x) {
     if (pointA.y > pointB.y) {

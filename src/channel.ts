@@ -17,7 +17,7 @@ interface LoglineDescriptor {
 }
 
 export class LogChannel extends EventEmitter implements Channel {
-  private index: number = 0
+  private index = 0
   private lines: LoglineDescriptor[]
   private prompt: readline.ReadLine
 
@@ -60,7 +60,7 @@ export class LogChannel extends EventEmitter implements Channel {
   }
 
   private async start (): Promise<void> {
-    const processLines = (index: number, lines: LoglineDescriptor[]) => {
+    const processLines = (index: number, lines: LoglineDescriptor[]): void => {
       const line = lines[index]
 
       if (line.type === 'recv') {
