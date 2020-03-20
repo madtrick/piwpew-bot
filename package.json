@@ -9,7 +9,7 @@
     "/bin"
   ],
   "bin": {
-    "bot": "./bin/bot"
+    "piwpew-bot": "./bin/piwpew-bot"
   },
   "scripts": {
     "build": "rm -rf built && tsc -p tsconfig-release.json --declaration",
@@ -23,6 +23,7 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^3.0.0",
+    "ts-node": "^8.7.0",
     "ws": "^7.2.0",
     "yargs": "^15.0.1"
   },
@@ -48,7 +49,6 @@
     "mocha": "^7.0.0",
     "sinon": "^7.5.0",
     "sinon-chai": "^3.3.0",
-    "ts-node": "^8.5.2",
     "typescript": "^3.7.4"
   }
 }
