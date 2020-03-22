@@ -441,7 +441,7 @@ describe('Message dispatcher', () => {
   describe('Player hit notification', () => {
     const message = {
       type: MessageTypes.Notification,
-      id: NotificationTypes.ShotHit,
+      id: NotificationTypes.Hit,
       data: {
         damage: 1
       }
