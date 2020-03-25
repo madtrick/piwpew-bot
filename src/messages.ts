@@ -105,7 +105,7 @@ export interface RotatePlayerResponseMessage {
   }
 }
 
-export interface PlayerShotHitNotificationMessage {
+export interface PlayerHitNotificationMessage {
   type: MessageTypes.Notification
   id: NotificationTypes.Hit
   data: {
@@ -230,7 +230,7 @@ export function isDeployMineResponseMessage (message: any): message is DeployMin
   return type === MessageTypes.Response && id === ResponseTypes.DeployMine
 }
 
-export function isPlayerShotHitNotificationMessage (message: any): message is PlayerShotHitNotificationMessage {
+export function isPlayerHitNotificationMessage (message: any): message is PlayerHitNotificationMessage {
   const { type, id } = message
 
   return type === MessageTypes.Notification && id === NotificationTypes.Hit

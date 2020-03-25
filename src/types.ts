@@ -43,8 +43,8 @@ export interface BotAPI<S> {
       state: S
     ) => HandlerReturn<S>
 
-    shotHitNotification?: (
-      data: PlayerShotHitNotification,
+    hitNotification?: (
+      data: PlayerHitNotification,
       state: S
     ) => HandlerReturn<S>
 
@@ -161,6 +161,6 @@ export interface FailedDeployMineResponse {
   data: string
 }
 
-export interface PlayerShotHitNotification {
+export interface PlayerHitNotification {
   damage: number
 }
