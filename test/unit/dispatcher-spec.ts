@@ -441,14 +441,14 @@ describe('Message dispatcher', () => {
   describe('Player hit notification', () => {
     const message = {
       type: MessageTypes.Notification,
-      id: NotificationTypes.ShotHit,
+      id: NotificationTypes.Hit,
       data: {
         damage: 1
       }
     }
     const bot = {
       handlers: {
-        shotHitNotification: sinon.stub().returns({ state: {}, requests: [] })
+        hitNotification: sinon.stub().returns({ state: {}, requests: [] })
       }
     }
     const context = { botState: {} }
@@ -456,7 +456,7 @@ describe('Message dispatcher', () => {
     it('dispatchs the message', () => {
       messageDispatcher(message, bot, context)
 
-      expect(bot.handlers.shotHitNotification).to.have.been.calledOnceWith(
+      expect(bot.handlers.hitNotification).to.have.been.calledOnceWith(
         message.data,
         context.botState
       )
@@ -464,14 +464,14 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.shotHitNotification.returns({ state, requests: [] })
+      bot.handlers.hitNotification.returns({ state, requests: [] })
       const { newBotState } = messageDispatcher(message, bot, context)
 
       expect(newBotState).to.eql(state)
     })
 
     it('returns the request transformed as a message', generateRequestMessage((request, expectedMessage) => {
-      bot.handlers.shotHitNotification.returns({ state: {}, requests: [request] })
+      bot.handlers.hitNotification.returns({ state: {}, requests: [request] })
       const { messages } = messageDispatcher(message, bot, context)
 
       expect(messages[0]).to.eql(expectedMessage)

@@ -72,7 +72,7 @@ interface BotAPI<S> {
     ) => { state: S, requests: Request[] }
 
 		shotHitNotification?: (
-      data: PlayerShotHitNotification,
+      data: PlayerHitNotification,
       state: S
     ) => { state: S, requests: Request[] }
 

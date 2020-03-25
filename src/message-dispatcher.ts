@@ -1,9 +1,5 @@
 import { BotAPI, Rotation } from './types'
 import {
-  // MoveRequest,
-  // ShootRequest,
-  // RotateRequest,
-  // DeployMineRequest,
   Request,
   RequestTypes,
   MovementDirection
@@ -23,15 +19,11 @@ import {
   isJoinGameNotificationMessage,
   isShootResponseMessage,
   isDeployMineResponseMessage,
-  isPlayerShotHitNotificationMessage
+  isPlayerHitNotificationMessage
 } from './messages'
 
 type RequestMessage = MovePlayerRequestMessage | ShootRequestMessage | DeployMineRequestMessage | RotatePlayerRequestMessage
 
-// function requestToMessage (request: MoveRequest): MovePlayerRequestMessage
-// function requestToMessage (request: ShootRequest): ShootRequestMessage
-// function requestToMessage (request: RotateRequest): RotatePlayerRequestMessage
-// function requestToMessage (request: DeployMineRequest): DeployMineRequestMessage
 function requestToMessage (request: Request | undefined): RequestMessage | undefined {
   if (request && request.type === RequestTypes.Move) {
     return move(request.data.direction, request.data.withTurbo)
@@ -338,13 +330,13 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
     return { newBotState, messages }
   }
 
-  if (isPlayerShotHitNotificationMessage(message)) {
-    if (!bot.handlers.shotHitNotification) {
+  if (isPlayerHitNotificationMessage(message)) {
+    if (!bot.handlers.hitNotification) {
       return { newBotState: context.botState, messages: [] }
     }
 
     const { data } = message
-    const { state: newBotState, requests: [request] } = bot.handlers.shotHitNotification(data, context.botState)
+    const { state: newBotState, requests: [request] } = bot.handlers.hitNotification(data, context.botState)
     let messages: RequestMessage[] = []
     const messageFromRequest = requestToMessage(request)
 
