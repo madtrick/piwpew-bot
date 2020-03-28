@@ -1,3 +1,3 @@
 export * from './types'
 export * from './utils'
-export { moveForwardRequest, rotateRequest } from './requests'
+export { moveForwardRequest, moveBackwardRequest, rotateRequest, shootRequest } from './requests'
