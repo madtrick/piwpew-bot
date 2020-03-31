@@ -1,6 +1,6 @@
 import { Position } from './types'
 
-function radiansToDegrees (radians: number): number {
+export function radiansToDegrees (radians: number): number {
   return Math.atan(radians) * 180 / Math.PI
 }
 

@@ -86,6 +86,34 @@ interface BotAPI<S> {
 
 For a list of all the types mentioned in this interface check: [types](./src/types.ts) and [requests](./src/requests.ts). The npm package exports the required type definitions to build a bot in TypeScript.
 
+### Helpers
+
+The library includes some helpers that can facilitate writing a bot. These helpers are:
+
+```typescript
+declare function radiansToDegrees (radians: number): number
+```
+
+`radiansToDegrees` converts a angle in radians to its value in degrees
+
+```typescript
+declare function calculateAngleBetweenPoints (pointA: Position, pointB: Position): number
+```
+
+`calculateAngleBetweenPoints` calculates the angle between two points. The returned value is an angle in degrees.
+
+```typescript
+declare function calculateDistanceBetweenTwoPoints (pointA: Position, pointB: Position): number
+```
+
+`calculateDistanceBetweenTwoPoints` return the distance between two points in the arena.
+
+The helpers can be imported directly from the library. For example:
+
+```typescript
+import { calculateAngleBetweenPoints } from 'piwpew-bot'
+```
+
 ### Bot registration
 
 You don't have to take care of registering the bot in the game, the library will take care of doing that for you.
