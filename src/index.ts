@@ -82,6 +82,9 @@ channel.on('open', function open (): void {
       type: MessageTypes.Request,
       id: RequestTypes.RegisterPlayer,
       data: {
+        game: {
+          version: '1.0.0'
+        },
         id: playerId
       }
     }
