@@ -34,6 +34,9 @@ export interface RegisterPlayerRequestMessage {
   type: MessageTypes.Request
   id: RequestTypes.RegisterPlayer
   data: {
+    game: {
+      version: string
+    }
     id: string
   }
 }
