@@ -52,7 +52,10 @@ export interface BotAPI<S> {
 
     startGameNotification?: (state: S) => HandlerReturn<S>
 
-    joinGameNotification?: (state: S) => HandlerReturn<S>
+    joinGameNotification?: (
+      data: JoinGameNotification,
+      state: S
+    ) => HandlerReturn<S>
   }
 }
 
@@ -163,4 +166,20 @@ export interface FailedDeployMineResponse {
 
 export interface PlayerHitNotification {
   damage: number
+}
+
+export interface JoinGameNotification {
+  data: {
+    game: {
+      settings: {
+        playerSpeed: number
+        shotSpeed: number
+        turboMultiplier: number
+        arenaWidth: number
+        arenaHeight: number
+        radarScanRadius: number
+        playerRadius: number
+      }
+    }
+  }
 }

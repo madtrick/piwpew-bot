@@ -178,6 +178,19 @@ export interface StartGameNofiticationMessage {
 export interface JoinGameNotificationMessage {
   type: MessageTypes.Notification
   id: NotificationTypes.JoinGame
+  details: {
+    game: {
+      settings: {
+        playerSpeed: number
+        shotSpeed: number
+        turboMultiplier: number
+        arenaWidth: number
+        arenaHeight: number
+        playerRadius: number
+        radarScanRadius: number
+      }
+    }
+  }
 }
 
 export interface RadarScan {
