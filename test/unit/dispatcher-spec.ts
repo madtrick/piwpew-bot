@@ -4,7 +4,8 @@ import {
   MessageTypes,
   ResponseTypes,
   NotificationTypes,
-  RequestTypes as MessageRequestTypes
+  RequestTypes as MessageRequestTypes,
+  JoinGameNotificationMessage
 } from '../../src/messages'
 import { RequestTypes, MovementDirection } from '../../src/requests'
 import { messageDispatcher } from '../../src/message-dispatcher'
@@ -132,10 +133,24 @@ describe('Message dispatcher', () => {
   })
 
   describe('Join game notification', () => {
-    const message = {
+    const message: JoinGameNotificationMessage = {
       type: MessageTypes.Notification,
-      id: NotificationTypes.JoinGame
+      id: NotificationTypes.JoinGame,
+      details: {
+        game: {
+          settings: {
+            playerSpeed: 10,
+            shotSpeed: 10,
+            arenaWidth: 400,
+            arenaHeight: 400,
+            playerRadius: 80,
+            radarScanRadius: 80,
+            turboMultiplier: 2
+          }
+        }
+      }
     }
+
     const bot = {
       handlers: {
         joinGameNotification: sinon.stub().returns({ state: {}, requests: [] })
@@ -146,7 +161,10 @@ describe('Message dispatcher', () => {
     it('dispatchs the message', () => {
       messageDispatcher(message, bot, context)
 
-      expect(bot.handlers.joinGameNotification).to.have.been.calledOnceWith(context.botState)
+      expect(bot.handlers.joinGameNotification).to.have.been.calledOnceWith(
+        { data: message.details },
+        context.botState
+      )
     })
 
     it('returns the new state', () => {

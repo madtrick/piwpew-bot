@@ -319,7 +319,8 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
       return { newBotState: context.botState, messages: [] }
     }
 
-    const { state: newBotState, requests: [request] } = bot.handlers.joinGameNotification(context.botState)
+    const { details } = message
+    const { state: newBotState, requests: [request] } = bot.handlers.joinGameNotification({ data: details }, context.botState)
     let messages: RequestMessage[] = []
     const messageFromRequest = requestToMessage(request)
 
