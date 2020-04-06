@@ -495,5 +495,41 @@ describe('Message dispatcher', () => {
       expect(messages[0]).to.eql(expectedMessage)
     }))
   })
+
+  describe('Tick notification', () => {
+    const message = {
+      type: MessageTypes.Notification,
+      id: NotificationTypes.Tick
+    }
+    const bot = {
+      handlers: {
+        tickNotification: sinon.stub().returns({ state: {}, requests: [] })
+      }
+    }
+    const context = { botState: {} }
+
+    it('dispatchs the message', () => {
+      messageDispatcher(message, bot, context)
+
+      expect(bot.handlers.tickNotification).to.have.been.calledOnceWith(
+        context.botState
+      )
+    })
+
+    it('returns the new state', () => {
+      const state = { foo: 'bar' }
+      bot.handlers.tickNotification.returns({ state, requests: [] })
+      const { newBotState } = messageDispatcher(message, bot, context)
+
+      expect(newBotState).to.eql(state)
+    })
+
+    it('returns the request transformed as a message', generateRequestMessage((request, expectedMessage) => {
+      bot.handlers.tickNotification.returns({ state: {}, requests: [request] })
+      const { messages } = messageDispatcher(message, bot, context)
+
+      expect(messages[0]).to.eql(expectedMessage)
+    }))
+  })
 })
 

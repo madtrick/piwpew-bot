@@ -27,7 +27,8 @@ export enum NotificationTypes {
   RadarScan = 'RadarScan',
   StartGame = 'StartGame',
   JoinGame = 'JoinGame',
-  Hit = 'Hit'
+  Hit = 'Hit',
+  Tick = 'Tick'
 }
 
 export interface RegisterPlayerRequestMessage {
@@ -193,6 +194,11 @@ export interface JoinGameNotificationMessage {
   }
 }
 
+export interface TickNotificationMessage {
+  type: MessageTypes.Notification
+  id: NotificationTypes.Tick
+}
+
 export interface RadarScan {
   players: { position: Position }[]
   unknown: { position: Position }[]
@@ -244,6 +250,12 @@ export function isDeployMineResponseMessage (message: any): message is DeployMin
   const { type, id } = message
 
   return type === MessageTypes.Response && id === ResponseTypes.DeployMine
+}
+
+export function isTickNotification (message: any): message is TickNotificationMessage {
+  const { type, id } = message
+
+  return type === MessageTypes.Notification && id === NotificationTypes.Tick
 }
 
 export function isPlayerHitNotificationMessage (message: any): message is PlayerHitNotificationMessage {

@@ -26,7 +26,7 @@ Steps 1 and 2 happen only once per game. 3, 4 and 5 repeat until the game ends o
 
 Bots interact with the game engine by sending [requests](https://github.com/madtrick/piwpew-docs/blob/master/README.md#requests). The game engine validates the requests, executes them and updates its internal state. If the request was successful the response includes data that describes how the bot state changed as a consequence of it. Responses are sent at the end of each [game tick](https://github.com/madtrick/piwpew-docs/blob/master/README.md#game-ticks).
 
-Bots can only have one in-flight request per game tick. That is, they shouldn't send a request before getting the response to a previous one, as later requests will overwrite previous ones.
+Bots can only have one in-flight request per game tick. That is, they shouldn't send a request before receiving the notification that signals a new tick, as later requests will overwrite previous ones.
 
 The game engine sends [notifications](https://github.com/madtrick/piwpew-docs/blob/master/README.md#notifications) to bots in response to game events that happen asynchronously to requests.
 
@@ -75,6 +75,10 @@ interface BotAPI<S> {
       data: PlayerHitNotification,
       state: S
     ) => { state: S, requests: Request[] }
+
+		tickNotification?: (
+      state: S
+    ) => HandlerReturn<S>
 
     startGameNotification?: (state: S) => { state: S, requests: Request[] }
 
