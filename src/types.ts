@@ -168,18 +168,20 @@ export interface PlayerHitNotification {
   damage: number
 }
 
+export interface GameSettings {
+  playerSpeed: number
+  shotSpeed: number
+  turboMultiplier: number
+  arenaWidth: number
+  arenaHeight: number
+  radarScanRadius: number
+  playerRadius: number
+}
+
 export interface JoinGameNotification {
   data: {
     game: {
-      settings: {
-        playerSpeed: number
-        shotSpeed: number
-        turboMultiplier: number
-        arenaWidth: number
-        arenaHeight: number
-        radarScanRadius: number
-        playerRadius: number
-      }
+      settings: GameSettings
     }
   }
 }
