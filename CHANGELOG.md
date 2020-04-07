@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * Update to protocol version `2.0.0`
+* Redesign the `BotAPI` interface. Only the `tickNotification` method can return a single `request` to be sent to the server.
 
 ### Added
 

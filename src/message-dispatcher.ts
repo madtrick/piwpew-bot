@@ -87,12 +87,10 @@ function deployMine (): DeployMineRequestMessage {
     id: MessageRequestTypes.DeployMine
   }
 
-  // writeMessagesToFile('send', data)
-
   return data
 }
 
-export function messageDispatcher (message: any, bot: BotAPI<any>, context: { botState: any }): { newBotState: any, messages: any[] } {
+export function messageDispatcher<S> (message: any, bot: BotAPI<S>, context: { botState: S }): { newBotState: S, messages: any[] } {
   if (isRegisterPlayerResponseMessage(message)) {
     if (!bot.handlers.registerPlayerResponse) {
       return { newBotState: context.botState, messages: [] }
@@ -111,24 +109,12 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
         throw new Error('invalid response message')
       }
 
-      const { state: newBotState, requests: [request] } = bot.handlers.registerPlayerResponse(
+      const { state: newBotState } = bot.handlers.registerPlayerResponse(
         { success: true, data: message.details },
         context.botState
       )
 
-      // TODO remove this message handling logic
-      const messages = []
-      let responseMessage
-
-      if (request && request.type === RequestTypes.Move) {
-        responseMessage = move(request.data.direction, false)
-      }
-
-      if (responseMessage) {
-        messages.push(responseMessage)
-      }
-
-      return { newBotState, messages }
+      return { newBotState, messages: [] }
     }
   }
 
@@ -151,18 +137,12 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
 
       const { position, tokens } = message.data.component.details
       const requestDetails = message.data.request
-      const { state: newBotState, requests: [request] } = bot.handlers.movePlayerResponse(
+      const { state: newBotState } = bot.handlers.movePlayerResponse(
         { success: true, data: { position, tokens, request: requestDetails } },
         context.botState
       )
-      let messages: RequestMessage[] = []
-      const messageFromRequest = requestToMessage(request)
 
-      if (messageFromRequest) {
-        messages = [messageFromRequest]
-      }
-
-      return { newBotState, messages }
+      return { newBotState, messages: [] }
     }
   }
 
@@ -187,18 +167,12 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
 
     const { rotation, tokens } = message.data.component.details
     const requestDetails = message.data.request
-    const { state: newBotState, requests: [request] } = bot.handlers.rotatePlayerResponse(
+    const { state: newBotState } = bot.handlers.rotatePlayerResponse(
       { success: message.success, data: { rotation, tokens, request: requestDetails } },
       context.botState
     )
-    let messages: RequestMessage[] = []
-    const messageFromRequest = requestToMessage(request)
 
-    if (messageFromRequest) {
-      messages = [messageFromRequest]
-    }
-
-    return { newBotState, messages }
+    return { newBotState, messages: [] }
   }
 
   if (isShootResponseMessage(message)) {
@@ -222,7 +196,7 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
 
     const { tokens } = message.data.component.details
     const requestDetails = message.data.request
-    const { state: newBotState, requests: [request] } = bot.handlers.shootResponse(
+    const { state: newBotState } = bot.handlers.shootResponse(
       {
         success: message.success,
         data: {
@@ -232,14 +206,8 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
       },
       context.botState
     )
-    let messages: RequestMessage[] = []
-    const messageFromRequest = requestToMessage(request)
 
-    if (messageFromRequest) {
-      messages = [messageFromRequest]
-    }
-
-    return { newBotState, messages }
+    return { newBotState, messages: [] }
   }
 
   if (isDeployMineResponseMessage(message)) {
@@ -264,18 +232,12 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
     const { tokens } = message.data.component.details
     const requestDetails = message.data.request
 
-    const { state: newBotState, requests: [request] } = bot.handlers.deployMineResponse(
+    const { state: newBotState } = bot.handlers.deployMineResponse(
       { success: message.success, data: { tokens, request: requestDetails } },
       context.botState
     )
-    let messages: RequestMessage[] = []
-    const messageFromRequest = requestToMessage(request)
 
-    if (messageFromRequest) {
-      messages = [messageFromRequest]
-    }
-
-    return { newBotState, messages }
+    return { newBotState, messages: [] }
   }
 
   if (isRadarScanNotificationMessage(message)) {
@@ -288,15 +250,9 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
     }
 
     const { data } = message
-    const { state: newBotState, requests: [request] } = bot.handlers.radarScanNotification({ data }, context.botState)
-    let messages: RequestMessage[] = []
-    const messageFromRequest = requestToMessage(request)
+    const { state: newBotState } = bot.handlers.radarScanNotification({ data }, context.botState)
 
-    if (messageFromRequest) {
-      messages = [messageFromRequest]
-    }
-
-    return { newBotState, messages }
+    return { newBotState, messages: [] }
   }
 
   if (isStartGameNotificationMessage(message)) {
@@ -304,15 +260,9 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
       return { newBotState: context.botState, messages: [] }
     }
 
-    const { state: newBotState, requests: [request] } = bot.handlers.startGameNotification(context.botState)
-    let messages: RequestMessage[] = []
-    const messageFromRequest = requestToMessage(request)
+    const { state: newBotState } = bot.handlers.startGameNotification(context.botState)
 
-    if (messageFromRequest) {
-      messages = [messageFromRequest]
-    }
-
-    return { newBotState, messages }
+    return { newBotState, messages: [] }
   }
 
   if (isJoinGameNotificationMessage(message)) {
@@ -321,15 +271,9 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
     }
 
     const { details } = message
-    const { state: newBotState, requests: [request] } = bot.handlers.joinGameNotification({ data: details }, context.botState)
-    let messages: RequestMessage[] = []
-    const messageFromRequest = requestToMessage(request)
+    const { state: newBotState } = bot.handlers.joinGameNotification({ data: details }, context.botState)
 
-    if (messageFromRequest) {
-      messages = [messageFromRequest]
-    }
-
-    return { newBotState, messages }
+    return { newBotState, messages: [] }
   }
 
   if (isPlayerHitNotificationMessage(message)) {
@@ -338,15 +282,9 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
     }
 
     const { data } = message
-    const { state: newBotState, requests: [request] } = bot.handlers.hitNotification(data, context.botState)
-    let messages: RequestMessage[] = []
-    const messageFromRequest = requestToMessage(request)
+    const { state: newBotState } = bot.handlers.hitNotification(data, context.botState)
 
-    if (messageFromRequest) {
-      messages = [messageFromRequest]
-    }
-
-    return { newBotState, messages }
+    return { newBotState, messages: [] }
   }
 
   if (isTickNotification(message)) {
@@ -354,7 +292,7 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
       return { newBotState: context.botState, messages: [] }
     }
 
-    const { state: newBotState, requests: [request] } = bot.handlers.tickNotification(context.botState)
+    const { state: newBotState, request } = bot.handlers.tickNotification(context.botState)
     let messages: RequestMessage[] = []
     const messageFromRequest = requestToMessage(request)
 
