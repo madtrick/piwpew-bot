@@ -75,7 +75,7 @@ describe('Message dispatcher', () => {
     }
     const bot = {
       handlers: {
-        registerPlayerResponse: sinon.stub().returns({ state: {}, requests: [] })
+        registerPlayerResponse: sinon.stub().returns({ state: {} })
       }
     }
     const context = { botState: {} }
@@ -91,7 +91,7 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.registerPlayerResponse.returns({ state, requests: [] })
+      bot.handlers.registerPlayerResponse.returns({ state })
       const { newBotState } = messageDispatcher(message, bot, context)
 
       expect(newBotState).to.eql(state)
@@ -105,7 +105,7 @@ describe('Message dispatcher', () => {
     }
     const bot = {
       handlers: {
-        startGameNotification: sinon.stub().returns({ state: {}, requests: [] })
+        startGameNotification: sinon.stub().returns({ state: {} })
       }
     }
     const context = { botState: {} }
@@ -118,18 +118,11 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.startGameNotification.returns({ state, requests: [] })
+      bot.handlers.startGameNotification.returns({ state })
       const { newBotState } = messageDispatcher(message, bot, context)
 
       expect(newBotState).to.eql(state)
     })
-
-    it('returns the request transformed as a message', generateRequestMessage((request, expectedMessage) => {
-      bot.handlers.startGameNotification.returns({ state: {}, requests: [request] })
-      const { messages } = messageDispatcher(message, bot, context)
-
-      expect(messages[0]).to.eql(expectedMessage)
-    }))
   })
 
   describe('Join game notification', () => {
@@ -153,7 +146,7 @@ describe('Message dispatcher', () => {
 
     const bot = {
       handlers: {
-        joinGameNotification: sinon.stub().returns({ state: {}, requests: [] })
+        joinGameNotification: sinon.stub().returns({ state: {} })
       }
     }
     const context = { botState: {} }
@@ -169,18 +162,11 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.joinGameNotification.returns({ state, requests: [] })
+      bot.handlers.joinGameNotification.returns({ state })
       const { newBotState } = messageDispatcher(message, bot, context)
 
       expect(newBotState).to.eql(state)
     })
-
-    it('returns the request transformed as a message', generateRequestMessage((request, expectedMessage) => {
-      bot.handlers.joinGameNotification.returns({ state: {}, requests: [request] })
-      const { messages } = messageDispatcher(message, bot, context)
-
-      expect(messages[0]).to.eql(expectedMessage)
-    }))
   })
 
   describe('Move player response', () => {
@@ -203,7 +189,7 @@ describe('Message dispatcher', () => {
     }
     const bot = {
       handlers: {
-        movePlayerResponse: sinon.stub().returns({ state: {}, requests: [] })
+        movePlayerResponse: sinon.stub().returns({ state: {} })
       }
     }
     const context = { botState: {} }
@@ -229,18 +215,11 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.movePlayerResponse.returns({ state, requests: [] })
+      bot.handlers.movePlayerResponse.returns({ state })
       const { newBotState } = messageDispatcher(message, bot, context)
 
       expect(newBotState).to.eql(state)
     })
-
-    it('returns the request transformed as a message', generateRequestMessage((request, expectedMessage) => {
-      bot.handlers.movePlayerResponse.returns({ state: {}, requests: [request] })
-      const { messages } = messageDispatcher(message, bot, context)
-
-      expect(messages[0]).to.eql(expectedMessage)
-    }))
   })
 
   describe('Rotate player response', () => {
@@ -262,7 +241,7 @@ describe('Message dispatcher', () => {
     }
     const bot = {
       handlers: {
-        rotatePlayerResponse: sinon.stub().returns({ state: {}, requests: [] })
+        rotatePlayerResponse: sinon.stub().returns({ state: {} })
       }
     }
     const context = { botState: {} }
@@ -287,18 +266,11 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.rotatePlayerResponse.returns({ state, requests: [] })
+      bot.handlers.rotatePlayerResponse.returns({ state })
       const { newBotState } = messageDispatcher(message, bot, context)
 
       expect(newBotState).to.eql(state)
     })
-
-    it('returns the request transformed as a message', generateRequestMessage((request, expectedMessage) => {
-      bot.handlers.rotatePlayerResponse.returns({ state: {}, requests: [request] })
-      const { messages } = messageDispatcher(message, bot, context)
-
-      expect(messages[0]).to.eql(expectedMessage)
-    }))
   })
 
   describe('Shoot response', () => {
@@ -319,7 +291,7 @@ describe('Message dispatcher', () => {
     }
     const bot = {
       handlers: {
-        shootResponse: sinon.stub().returns({ state: {}, requests: [] })
+        shootResponse: sinon.stub().returns({ state: {} })
       }
     }
     const context = { botState: {} }
@@ -343,18 +315,11 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.shootResponse.returns({ state, requests: [] })
+      bot.handlers.shootResponse.returns({ state })
       const { newBotState } = messageDispatcher(message, bot, context)
 
       expect(newBotState).to.eql(state)
     })
-
-    it('returns the request transformed as a message', generateRequestMessage((request, expectedMessage) => {
-      bot.handlers.shootResponse.returns({ state: {}, requests: [request] })
-      const { messages } = messageDispatcher(message, bot, context)
-
-      expect(messages[0]).to.eql(expectedMessage)
-    }))
   })
 
   describe('DeployMine response', () => {
@@ -375,7 +340,7 @@ describe('Message dispatcher', () => {
     }
     const bot = {
       handlers: {
-        deployMineResponse: sinon.stub().returns({ state: {}, requests: [] })
+        deployMineResponse: sinon.stub().returns({ state: {} })
       }
     }
     const context = { botState: {} }
@@ -399,18 +364,11 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.deployMineResponse.returns({ state, requests: [] })
+      bot.handlers.deployMineResponse.returns({ state })
       const { newBotState } = messageDispatcher(message, bot, context)
 
       expect(newBotState).to.eql(state)
     })
-
-    it('returns the request transformed as a message', generateRequestMessage((request, expectedMessage) => {
-      bot.handlers.deployMineResponse.returns({ state: {}, requests: [request] })
-      const { messages } = messageDispatcher(message, bot, context)
-
-      expect(messages[0]).to.eql(expectedMessage)
-    }))
   })
 
   describe('Radar scan notification', () => {
@@ -426,7 +384,7 @@ describe('Message dispatcher', () => {
     }
     const bot = {
       handlers: {
-        radarScanNotification: sinon.stub().returns({ state: {}, requests: [] })
+        radarScanNotification: sinon.stub().returns({ state: {} })
       }
     }
     const context = { botState: {} }
@@ -442,18 +400,11 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.radarScanNotification.returns({ state, requests: [] })
+      bot.handlers.radarScanNotification.returns({ state })
       const { newBotState } = messageDispatcher(message, bot, context)
 
       expect(newBotState).to.eql(state)
     })
-
-    it('returns the request transformed as a message', generateRequestMessage((request, expectedMessage) => {
-      bot.handlers.radarScanNotification.returns({ state: {}, requests: [request] })
-      const { messages } = messageDispatcher(message, bot, context)
-
-      expect(messages[0]).to.eql(expectedMessage)
-    }))
   })
 
   describe('Player hit notification', () => {
@@ -466,7 +417,7 @@ describe('Message dispatcher', () => {
     }
     const bot = {
       handlers: {
-        hitNotification: sinon.stub().returns({ state: {}, requests: [] })
+        hitNotification: sinon.stub().returns({ state: {} })
       }
     }
     const context = { botState: {} }
@@ -482,18 +433,11 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.hitNotification.returns({ state, requests: [] })
+      bot.handlers.hitNotification.returns({ state })
       const { newBotState } = messageDispatcher(message, bot, context)
 
       expect(newBotState).to.eql(state)
     })
-
-    it('returns the request transformed as a message', generateRequestMessage((request, expectedMessage) => {
-      bot.handlers.hitNotification.returns({ state: {}, requests: [request] })
-      const { messages } = messageDispatcher(message, bot, context)
-
-      expect(messages[0]).to.eql(expectedMessage)
-    }))
   })
 
   describe('Tick notification', () => {
@@ -525,7 +469,7 @@ describe('Message dispatcher', () => {
     })
 
     it('returns the request transformed as a message', generateRequestMessage((request, expectedMessage) => {
-      bot.handlers.tickNotification.returns({ state: {}, requests: [request] })
+      bot.handlers.tickNotification.returns({ state: {}, request })
       const { messages } = messageDispatcher(message, bot, context)
 
       expect(messages[0]).to.eql(expectedMessage)

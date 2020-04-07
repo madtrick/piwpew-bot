@@ -44,51 +44,58 @@ interface BotAPI<S> {
     radarScanNotification?: (
       data: RadarScanNotification,
       state: S
-    ) => { state: S, requests: Request[] }
+    ) => { state: S }
 
     registerPlayerResponse?: (
       data: SuccessfulRegisterPlayerResponse | FailedRegisterPlayerResponse,
       state: S
-    ) => { state: S, requests: Request[] }
+    ) => { state: S }
 
     rotatePlayerResponse?: (
       data: SuccessfulRotatePlayerResponse | FailedRotatePlayerResponse,
       state: S
-    ) => { state: S, requests: Request[] }
+    ) => { state: S }
 
     movePlayerResponse?: (
       data: SuccessfulMovePlayerResponse | FailedMovePlayerResponse,
       state: S
-    ) => { state: S, requests: Request[] }
+    ) => { state: S }
 
     shootResponse?: (
       data: SuccessfulShootResponse | FailedShootResponse,
       state: S
-    ) => { state: S, requests: Request[] }
+    ) => { state: S }
 
-		deployMineResponse?: (
+    deployMineResponse?: (
       data: SuccessfulDeployMineResponse | FailedDeployMineResponse,
       state: S
-    ) => { state: S, requests: Request[] }
+    ) => { state: S }
 
-		shotHitNotification?: (
+    hitNotification?: (
       data: PlayerHitNotification,
       state: S
-    ) => { state: S, requests: Request[] }
+    ) => { state: S }
 
-		tickNotification?: (
+    tickNotification?: (
       state: S
-    ) => HandlerReturn<S>
+    ) => { state: S, request: Request }
 
-    startGameNotification?: (state: S) => { state: S, requests: Request[] }
+    startGameNotification?: (
+      state: S
+    ) => { state: S }
 
-    joinGameNotification?: (state: S) => { state: S, requests: Request[] }
+    joinGameNotification?: (
+      data: JoinGameNotification,
+      state: S
+    ) => { state: S }
   }
 }
 
 ```
 
 For a list of all the types mentioned in this interface check: [types](./src/types.ts) and [requests](./src/requests.ts). The npm package exports the required type definitions to build a bot in TypeScript.
+
+Notice that you can only return a request to be sent to the server from the `tickNotification` handler.
 
 ### Helpers
 

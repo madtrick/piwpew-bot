@@ -7,7 +7,6 @@ export interface Position {
 }
 
 export type Rotation = number
-export type HandlerReturn<S> = { state: S, requests: Request[] }
 
 export interface BotAPI<S> {
   initState?: () => S
@@ -16,50 +15,52 @@ export interface BotAPI<S> {
     radarScanNotification?: (
       data: RadarScanNotification,
       state: S
-    ) => HandlerReturn<S>
+    ) => { state: S }
 
     registerPlayerResponse?: (
       data: SuccessfulRegisterPlayerResponse | FailedRegisterPlayerResponse,
       state: S
-    ) => HandlerReturn<S>
+    ) => { state: S }
 
     rotatePlayerResponse?: (
       data: SuccessfulRotatePlayerResponse | FailedRotatePlayerResponse,
       state: S
-    ) => HandlerReturn<S>
+    ) => { state: S }
 
     movePlayerResponse?: (
       data: SuccessfulMovePlayerResponse | FailedMovePlayerResponse,
       state: S
-    ) => HandlerReturn<S>
+    ) => { state: S }
 
     shootResponse?: (
       data: SuccessfulShootResponse | FailedShootResponse,
       state: S
-    ) => HandlerReturn<S>
+    ) => { state: S }
 
     deployMineResponse?: (
       data: SuccessfulDeployMineResponse | FailedDeployMineResponse,
       state: S
-    ) => HandlerReturn<S>
+    ) => { state: S }
 
     hitNotification?: (
       data: PlayerHitNotification,
       state: S
-    ) => HandlerReturn<S>
+    ) => { state: S }
 
     tickNotification?: (
       state: S
-    ) => HandlerReturn<S>
+    ) => { state: S, request: Request }
 
     // TODO include handler for destroyed player
 
-    startGameNotification?: (state: S) => HandlerReturn<S>
+    startGameNotification?: (
+      state: S
+    ) => { state: S }
 
     joinGameNotification?: (
       data: JoinGameNotification,
       state: S
-    ) => HandlerReturn<S>
+    ) => { state: S }
   }
 }
 
