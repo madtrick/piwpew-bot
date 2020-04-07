@@ -19,7 +19,8 @@ import {
   isJoinGameNotificationMessage,
   isShootResponseMessage,
   isDeployMineResponseMessage,
-  isPlayerHitNotificationMessage
+  isPlayerHitNotificationMessage,
+  isTickNotification
 } from './messages'
 
 type RequestMessage = MovePlayerRequestMessage | ShootRequestMessage | DeployMineRequestMessage | RotatePlayerRequestMessage
@@ -338,6 +339,22 @@ export function messageDispatcher (message: any, bot: BotAPI<any>, context: { bo
 
     const { data } = message
     const { state: newBotState, requests: [request] } = bot.handlers.hitNotification(data, context.botState)
+    let messages: RequestMessage[] = []
+    const messageFromRequest = requestToMessage(request)
+
+    if (messageFromRequest) {
+      messages = [messageFromRequest]
+    }
+
+    return { newBotState, messages }
+  }
+
+  if (isTickNotification(message)) {
+    if (!bot.handlers.tickNotification) {
+      return { newBotState: context.botState, messages: [] }
+    }
+
+    const { state: newBotState, requests: [request] } = bot.handlers.tickNotification(context.botState)
     let messages: RequestMessage[] = []
     const messageFromRequest = requestToMessage(request)
 

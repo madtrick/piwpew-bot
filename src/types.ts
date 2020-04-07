@@ -48,6 +48,10 @@ export interface BotAPI<S> {
       state: S
     ) => HandlerReturn<S>
 
+    tickNotification?: (
+      state: S
+    ) => HandlerReturn<S>
+
     // TODO include handler for destroyed player
 
     startGameNotification?: (state: S) => HandlerReturn<S>
