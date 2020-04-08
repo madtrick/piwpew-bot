@@ -138,7 +138,7 @@ export const bot: BotAPI<any> = {
       console.log(chalk.cyan('TickNotificationn'))
 
       if (!state.game || state.status === Status.NonStarted) {
-        return { state, requests: [] }
+        return { state }
       }
 
       if (!state.bot.destination) {

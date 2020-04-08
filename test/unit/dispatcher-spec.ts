@@ -449,7 +449,7 @@ describe('Message dispatcher', () => {
     }
     const bot = {
       handlers: {
-        tickNotification: sinon.stub().returns({ state: {}, requests: [] })
+        tickNotification: sinon.stub().returns({ state: {} })
       }
     }
     const context = { botState: {} }

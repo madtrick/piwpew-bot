@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.1] - 2020-04-08
+
+### Fixed
+
+* By mistake the return type from the `tickNotification` handler required a `request`. This property is now optional
+
 ## [4.1.0] - 2020-04-08
 
 ### Added
@@ -18,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * Update to protocol version [`2.0.0`](https://github.com/madtrick/piwpew-docs/commit/6be6a424d18604c74c69d1877701f9c42a5ea576)
-* Redesign the `BotAPI` interface. Only the `tickNotification` method can return a single `request` to be sent to the server.
+* Redesign the `BotAPI` interface. Only the `tickNotification` method can return a single `request` to be sent to the server
 
 ### Added
 
