@@ -1,6 +1,6 @@
 {
   "name": "piwpew-bot",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "Library to build bots for PiwPew",
   "main": "built/bot.js",
   "types": "./built/bot.d.ts",
