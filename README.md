@@ -78,7 +78,7 @@ interface BotAPI<S> {
 
     tickNotification?: (
       state: S
-    ) => { state: S, request: Request }
+    ) => { state: S, request?: Request }
 
     startGameNotification?: (
       state: S

@@ -49,7 +49,7 @@ export interface BotAPI<S> {
 
     tickNotification?: (
       state: S
-    ) => { state: S, request: Request }
+    ) => { state: S, request?: Request }
 
     // TODO include handler for destroyed player
 
