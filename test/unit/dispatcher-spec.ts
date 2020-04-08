@@ -70,7 +70,9 @@ describe('Message dispatcher', () => {
       details: {
         id: 'player-1',
         position: { x: 100, y: 200 },
-        rotation: 359
+        rotation: 359,
+        life: 100,
+        tokens: 150
       }
     }
     const bot = {

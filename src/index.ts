@@ -83,7 +83,7 @@ channel.on('open', function open (): void {
       id: RequestTypes.RegisterPlayer,
       data: {
         game: {
-          version: '2.0.0'
+          version: '2.1.0'
         },
         id: playerId
       }
