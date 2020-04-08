@@ -50,6 +50,8 @@ export interface RegisterPlayerResponseMessage {
     id: string
     position: Position
     rotation: Rotation
+    life: number
+    tokens: number
   }
 }
 

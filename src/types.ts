@@ -98,6 +98,8 @@ export interface SuccessfulRegisterPlayerResponse {
     id: string
     position: Position
     rotation: Rotation
+    life: number
+    tokens: number
   }
 }
 
