@@ -13,7 +13,6 @@ import {
   GameSettings
 } from '../src/types'
 import {
-  Request,
   rotateRequest,
   moveForwardRequest
 } from '../src/requests'
@@ -89,7 +88,7 @@ export const bot: BotAPI<any> = {
     registerPlayerResponse: (
       data: FailedRegisterPlayerResponse | SuccessfulRegisterPlayerResponse,
       _state: State
-    ): { state: State, requests: Request[] } => {
+    ) => {
       if (!data.success) {
         return process.exit(1)
       }
@@ -102,13 +101,13 @@ export const bot: BotAPI<any> = {
         }
       }
 
-      return { state: botState, requests: [] }
+      return { state: botState }
     },
 
     movePlayerResponse: (
       data: SuccessfulMovePlayerResponse | FailedMovePlayerResponse,
       state: State
-    ): { state: State, requests: Request[] } => {
+    ) => {
       console.log(chalk.cyan('MovePlayerResponse'))
 
       if (!data.success) {
@@ -117,13 +116,13 @@ export const bot: BotAPI<any> = {
 
       state.bot.position = data.data.position
 
-      return { state, requests: [] }
+      return { state }
     },
 
     rotatePlayerResponse: (
       data: SuccessfulRotatePlayerResponse | FailedRotatePlayerResponse,
       state: State
-    ): { state: State, requests: Request[] } => {
+    ) => {
       console.log(chalk.cyan('RotatePlayerResponse'))
 
       if (!data.success) {
@@ -132,10 +131,10 @@ export const bot: BotAPI<any> = {
 
       state.bot.rotation = data.data.rotation
 
-      return { state , requests: [] }
+      return { state }
     },
 
-    tickNotification: (state: State): { state: State, requests: Request[] } => {
+    tickNotification: (state: State) => {
       console.log(chalk.cyan('TickNotificationn'))
 
       if (!state.game || state.status === Status.NonStarted) {
@@ -147,7 +146,7 @@ export const bot: BotAPI<any> = {
         state.bot.destination = generateDestination(botMovementBoundaries(state.game.settings))
         const rotation = calculateAngleBetweenPoints(state.bot.position, state.bot.destination)
 
-        return { state, requests: [rotateRequest(rotation)] }
+        return { state, request: rotateRequest(rotation) }
       } else {
         const distance = calculateDistanceBetweenTwoPoints(state.bot.destination, state.bot.position)
 
@@ -155,9 +154,9 @@ export const bot: BotAPI<any> = {
           state.bot.destination = generateDestination(botMovementBoundaries(state.game.settings))
           const rotation = calculateAngleBetweenPoints(state.bot.position, state.bot.destination)
 
-          return { state, requests: [rotateRequest(rotation)] }
+          return { state, request: rotateRequest(rotation) }
         } else {
-          return { state, requests: [moveForwardRequest({ withTurbo: false })] }
+          return { state, request: moveForwardRequest({ withTurbo: false }) }
         }
       }
     },
@@ -165,16 +164,13 @@ export const bot: BotAPI<any> = {
     joinGameNotification: (
       data: JoinGameNotification,
       state: State
-    ): { state: State, requests: Request[] } => {
+    ) => {
       console.log(chalk.cyan('JoinGameNotification'))
 
       state.status = Status.Started
       state.game = { settings: data.data.game.settings }
 
-      return {
-        state,
-        requests: []
-      }
+      return { state }
     }
   }
 }
