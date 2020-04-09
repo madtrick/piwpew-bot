@@ -10,9 +10,34 @@ Framework to build bots for [PiwPew](https://www.piwpew.com)
 npm install piwpew-bot
 ```
 
-## Game
+## Usage
 
-[PiwPew](https://www.piwpew.com) is a game where bots, coded by you and others, fight against each other. The game dynamics are quite simple:
+Use the `piwpew-bot` tool to run a bot writen with this framework. It works for bots written both in JavaScript or TypeScript.
+
+```shell
+$ piwpew-bot -h
+Options:
+  --help        Show help                                              [boolean]
+  --version     Show version number                                    [boolean]
+  -i, --id      Bot id                                       [string] [required]
+  -m, --module  Module implementing the BotAPI               [string] [required]
+  -r, --replay  Log file to be replayed                                 [string]
+  -s, --server  Address of the game engine
+                                     [string] [default: "wss://game.piwpew.com"]
+
+```
+
+For example:
+
+```shell
+npx piwpew-bot -i my-amazing-bot -m ./handler.ts
+```
+
+The framework will write a log file with all the messages sent and received by the bot. The log file will be named `<bot-id>-messages.log`.
+
+## About the game
+
+[Piwpew](https://www.piwpew.com) is a game where bots, coded by you and others, fight against each other. The game dynamics are quite simple:
 
 1. Your bot registers in the game. This is automatically done for you by the framework.
 2. The game engine notifies the bot when the game starts.
@@ -24,17 +49,19 @@ Steps 1 and 2 happen only once per game. 3, 4 and 5 repeat until the game ends o
 
 ### Game protocol
 
+Following is a summary of the game protocol, check out the [piwpew-docs](https://github.com/madtrick/piwpew-docs) for a reference documentation about requests and notifications.
+
 Bots interact with the game engine by sending [requests](https://github.com/madtrick/piwpew-docs/blob/master/README.md#requests). The game engine validates the requests, executes them and updates its internal state. If the request was successful the response includes data that describes how the bot state changed as a consequence of it. Responses are sent at the end of each [game tick](https://github.com/madtrick/piwpew-docs/blob/master/README.md#game-ticks).
 
 Bots can only have one in-flight request per game tick. That is, they shouldn't send a request before receiving the [notification that signals a new tick](https://github.com/madtrick/piwpew-docs#tick), as later requests will overwrite previous ones.
 
 The game engine sends [notifications](https://github.com/madtrick/piwpew-docs/blob/master/README.md#notifications) to bots in response to game events that happen asynchronously to requests.
 
-Check out the [piwpew-docs](https://github.com/madtrick/piwpew-docs) for a reference documentation about requests and notifications.
-
 ## Writing a bot
 
-To write a bot all you have to do is implement the parts you want from the following interface. The methods in the interface map to the request's responses and notifications sent by the game engine.
+To write a bot all you have to do is implement the parts you want from the following interface and export it with the name `bot` in the module that is passed to `piwpew-bot`. The methods in the interface map to the request's responses and notifications sent by the game engine. You can find example implementations in the [`examples/`](examples/) folder.
+
+
 
 ```typescript
 interface BotAPI<S> {
@@ -133,32 +160,9 @@ You don't have to take care of registering the bot in the game, the library will
 
 Each handler method takes as an argument the bot state that you can use to keep information between handler invocations.  Each handler method must return the new state that will be passed in as an argument to the next handler invocation. You can init the state before receiving any message from the game engine by implementing the `initState` method. The default bot state is an empty object `{}`.
 
-## Usage
-
-Use the `piwpew-bot` tool to run a bot writen with this framework. It works for bots written both in JavaScript or TypeScript.
-
-```shell
-$ piwpew-bot -h
-Options:
-  --help        Show help                                              [boolean]
-  --version     Show version number                                    [boolean]
-  -i, --id      Bot id                                       [string] [required]
-  -m, --module  Module implementing the BotAPI               [string] [required]
-  -r, --replay  Log file to be replayed                                 [string]
-  -s, --server  Address of the game engine
-                                     [string] [default: "wss://game.piwpew.com"]
-
-```
-
-The framework will write a log file with all the messages sent and received by the bot. The log file will be named `<bot-id>-messages.log`.
-
 ## Logs playback
 
 If you want to you can replay the logs by running `bin/bot` with the `-r` flag. When replaying the logs, you can pause the playback (for example because you want to set a breakpoint) by adding a line with the text `[break]` in the log file being replayed with `-r`.
-
-## Examples
-
-This repo contains several example bots in the folder `examples/`
 
 ## License
 
