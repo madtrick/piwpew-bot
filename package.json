@@ -13,6 +13,7 @@
   },
   "scripts": {
     "build": "rm -rf built && tsc -p tsconfig-release.json --declaration",
+    "build-dev": "tsc -p tsconfig.json",
     "test": "mocha test/**/*-spec.ts",
     "lint": "eslint 'src/**/*'",
     "prepublishOnly": "npm run build"

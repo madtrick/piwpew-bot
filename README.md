@@ -104,7 +104,8 @@ interface BotAPI<S> {
     ) => { state: S }
 
     tickNotification?: (
-      state: S
+      state: S,
+      context: { inFlightRequest?: Request }
     ) => { state: S, request?: Request }
 
     startGameNotification?: (

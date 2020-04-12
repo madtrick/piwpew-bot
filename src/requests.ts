@@ -54,3 +54,7 @@ export function shootRequest (): ShootRequest {
   return { type: RequestTypes.Shoot }
 }
 
+export function deployMineRequest (): DeployMineRequest {
+  return { type: RequestTypes.DeployMine }
+}
+

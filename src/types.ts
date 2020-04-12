@@ -48,7 +48,8 @@ export interface BotAPI<S> {
     ) => { state: S }
 
     tickNotification?: (
-      state: S
+      state: S,
+      context: { inFlightRequest?: Request }
     ) => { state: S, request?: Request }
 
     // TODO include handler for destroyed player

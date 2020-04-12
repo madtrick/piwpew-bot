@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.2.0] - 2020-04-08
+
+### Changed
+
+* Bump the protocol version to `2.1.2`
+
+### Added
+
+* The `tickNotification` handler takes now an object as a second argument. This object has an `inFlightRequest` property which is set to the last sent but not responded request or `undefined`
+* `deployMineRequest` a new request helper to deploy mines
+
 ## [4.1.1] - 2020-04-08
 
 ### Fixed
