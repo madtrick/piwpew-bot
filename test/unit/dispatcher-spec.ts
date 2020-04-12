@@ -129,6 +129,13 @@ describe('Message dispatcher', () => {
 
       expect(newContext.botState).to.eql(state)
     })
+
+    it('does not reset the "inFlightRequest" flag to undefined', () => {
+      const request = shootRequest()
+      const { newContext } = messageDispatcher(message, bot, { ...context, inFlightRequest: request })
+
+      expect(newContext.inFlightRequest).to.eql(request)
+    })
   })
 
   describe('Join game notification', () => {
@@ -173,6 +180,13 @@ describe('Message dispatcher', () => {
       const { newContext } = messageDispatcher(message, bot, context)
 
       expect(newContext.botState).to.eql(state)
+    })
+
+    it('does not reset the "inFlightRequest" flag to undefined', () => {
+      const request = shootRequest()
+      const { newContext } = messageDispatcher(message, bot, { ...context, inFlightRequest: request })
+
+      expect(newContext.inFlightRequest).to.eql(request)
     })
   })
 
@@ -441,6 +455,13 @@ describe('Message dispatcher', () => {
 
       expect(newContext.botState).to.eql(state)
     })
+
+    it('does not reset the "inFlightRequest" flag to undefined', () => {
+      const request = shootRequest()
+      const { newContext } = messageDispatcher(message, bot, { ...context, inFlightRequest: request })
+
+      expect(newContext.inFlightRequest).to.eql(request)
+    })
   })
 
   describe('Player hit notification', () => {
@@ -474,6 +495,13 @@ describe('Message dispatcher', () => {
       const { newContext } = messageDispatcher(message, bot, context)
 
       expect(newContext.botState).to.eql(state)
+    })
+
+    it('does not reset the "inFlightRequest" flag to undefined', () => {
+      const request = shootRequest()
+      const { newContext } = messageDispatcher(message, bot, { ...context, inFlightRequest: request })
+
+      expect(newContext.inFlightRequest).to.eql(request)
     })
   })
 
