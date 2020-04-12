@@ -261,7 +261,7 @@ export function messageDispatcher<S> (
     const { data } = message
     const { state: newBotState } = bot.handlers.radarScanNotification({ data }, context.botState)
 
-    return { newContext: { botState: newBotState }, messages: [] }
+    return { newContext: { ...context, botState: newBotState }, messages: [] }
   }
 
   if (isStartGameNotificationMessage(message)) {
@@ -271,7 +271,7 @@ export function messageDispatcher<S> (
 
     const { state: newBotState } = bot.handlers.startGameNotification(context.botState)
 
-    return { newContext: { botState: newBotState }, messages: [] }
+    return { newContext: { ...context, botState: newBotState }, messages: [] }
   }
 
   if (isJoinGameNotificationMessage(message)) {
@@ -282,7 +282,7 @@ export function messageDispatcher<S> (
     const { details } = message
     const { state: newBotState } = bot.handlers.joinGameNotification({ data: details }, context.botState)
 
-    return { newContext: { botState: newBotState }, messages: [] }
+    return { newContext: { ...context, botState: newBotState }, messages: [] }
   }
 
   if (isPlayerHitNotificationMessage(message)) {
@@ -293,7 +293,7 @@ export function messageDispatcher<S> (
     const { data } = message
     const { state: newBotState } = bot.handlers.hitNotification(data, context.botState)
 
-    return { newContext: { botState: newBotState }, messages: [] }
+    return { newContext: { ...context, botState: newBotState }, messages: [] }
   }
 
   if (isTickNotification(message)) {
