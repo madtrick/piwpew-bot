@@ -58,10 +58,10 @@ channel.on('open', function open (): void {
   const botImport: Promise<{ bot: BotAPI<any>}> = import(path.resolve(__dirname, path.relative(__dirname, argv.m)))
 
   botImport.then(({ bot }) => {
-    const state = { botState : {} }
+    const state = { dispatcherContext: { botState: {} } }
 
     if (bot.initState !== undefined) {
-      state.botState = bot.initState()
+      state.dispatcherContext.botState = bot.initState()
     }
 
     channel.on('message', function handleMessage (json: string): void {
@@ -69,8 +69,8 @@ channel.on('open', function open (): void {
 
       writeMessagesToFile('recv', message)
       // TODO rename to dispatchMessage
-      const { newBotState, messages } = messageDispatcher(message, bot, state)
-      state.botState = newBotState
+      const { newContext, messages } = messageDispatcher(message, bot, state.dispatcherContext)
+      state.dispatcherContext = newContext
 
       messages.forEach((message) => {
         writeMessagesToFile('send', message)
@@ -83,7 +83,7 @@ channel.on('open', function open (): void {
       id: RequestTypes.RegisterPlayer,
       data: {
         game: {
-          version: '2.1.0'
+          version: '2.1.2'
         },
         id: playerId
       }

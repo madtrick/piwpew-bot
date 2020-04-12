@@ -90,10 +90,19 @@ function deployMine (): DeployMineRequestMessage {
   return data
 }
 
-export function messageDispatcher<S> (message: any, bot: BotAPI<S>, context: { botState: S }): { newBotState: S, messages: any[] } {
+export type DispatcherContext<S> = {
+  botState: S
+  inFlightRequest?: Request
+}
+
+export function messageDispatcher<S> (
+  message: any,
+  bot: BotAPI<S>,
+  context: DispatcherContext<S>
+): { newContext: DispatcherContext<S>, messages: any[] } {
   if (isRegisterPlayerResponseMessage(message)) {
     if (!bot.handlers.registerPlayerResponse) {
-      return { newBotState: context.botState, messages: [] }
+      return { newContext: context, messages: [] }
     }
 
     // TODO handle all kind of requests from all message handlers
@@ -103,7 +112,7 @@ export function messageDispatcher<S> (message: any, bot: BotAPI<S>, context: { b
         context.botState
       )
 
-      return { newBotState, messages: [] }
+      return { newContext: { botState: newBotState }, messages: [] }
     } else {
       if (typeof message.details !== 'object') {
         throw new Error('invalid response message')
@@ -114,13 +123,13 @@ export function messageDispatcher<S> (message: any, bot: BotAPI<S>, context: { b
         context.botState
       )
 
-      return { newBotState, messages: [] }
+      return { newContext: { botState: newBotState }, messages: [] }
     }
   }
 
   if (isMovePlayerResponseMessage(message)) {
     if (!bot.handlers.movePlayerResponse) {
-      return { newBotState: context.botState, messages: [] }
+      return { newContext: context, messages: [] }
     }
 
     if (message.success === false) {
@@ -129,7 +138,7 @@ export function messageDispatcher<S> (message: any, bot: BotAPI<S>, context: { b
         context.botState
       )
 
-      return { newBotState, messages: [] }
+      return { newContext: { botState: newBotState }, messages: [] }
     } else {
       if (typeof message.data !== 'object') {
         throw new Error('invalid response message')
@@ -142,13 +151,13 @@ export function messageDispatcher<S> (message: any, bot: BotAPI<S>, context: { b
         context.botState
       )
 
-      return { newBotState, messages: [] }
+      return { newContext: { botState: newBotState }, messages: [] }
     }
   }
 
   if (isRotatePlayerResponseMessage(message)) {
     if (!bot.handlers.rotatePlayerResponse) {
-      return { newBotState: context.botState, messages: [] }
+      return { newContext: context, messages: [] }
     }
 
     if (message.success === false) {
@@ -158,7 +167,7 @@ export function messageDispatcher<S> (message: any, bot: BotAPI<S>, context: { b
         context.botState
       )
 
-      return { newBotState, messages: [] }
+      return { newContext: { botState: newBotState }, messages: [] }
     }
 
     if (typeof message.data !== 'object') {
@@ -172,12 +181,12 @@ export function messageDispatcher<S> (message: any, bot: BotAPI<S>, context: { b
       context.botState
     )
 
-    return { newBotState, messages: [] }
+    return { newContext: { botState: newBotState }, messages: [] }
   }
 
   if (isShootResponseMessage(message)) {
     if (!bot.handlers.shootResponse) {
-      return { newBotState: context.botState, messages: [] }
+      return { newContext: context, messages: [] }
     }
 
     if (message.success === false) {
@@ -187,7 +196,7 @@ export function messageDispatcher<S> (message: any, bot: BotAPI<S>, context: { b
         context.botState
       )
 
-      return { newBotState, messages: [] }
+      return { newContext: { botState: newBotState }, messages: [] }
     }
 
     if (typeof message.data !== 'object') {
@@ -207,12 +216,12 @@ export function messageDispatcher<S> (message: any, bot: BotAPI<S>, context: { b
       context.botState
     )
 
-    return { newBotState, messages: [] }
+    return { newContext: { botState: newBotState }, messages: [] }
   }
 
   if (isDeployMineResponseMessage(message)) {
     if (!bot.handlers.deployMineResponse) {
-      return { newBotState: context.botState, messages: [] }
+      return { newContext: context, messages: [] }
     }
 
     if (message.success === false) {
@@ -222,7 +231,7 @@ export function messageDispatcher<S> (message: any, bot: BotAPI<S>, context: { b
         context.botState
       )
 
-      return { newBotState, messages: [] }
+      return { newContext: { botState: newBotState }, messages: [] }
     }
 
     if (typeof message.data !== 'object') {
@@ -237,12 +246,12 @@ export function messageDispatcher<S> (message: any, bot: BotAPI<S>, context: { b
       context.botState
     )
 
-    return { newBotState, messages: [] }
+    return { newContext: { botState: newBotState }, messages: [] }
   }
 
   if (isRadarScanNotificationMessage(message)) {
     if (!bot.handlers.radarScanNotification) {
-      return { newBotState: context.botState, messages: [] }
+      return { newContext: context, messages: [] }
     }
 
     if (typeof message.data !== 'object') {
@@ -252,47 +261,47 @@ export function messageDispatcher<S> (message: any, bot: BotAPI<S>, context: { b
     const { data } = message
     const { state: newBotState } = bot.handlers.radarScanNotification({ data }, context.botState)
 
-    return { newBotState, messages: [] }
+    return { newContext: { botState: newBotState }, messages: [] }
   }
 
   if (isStartGameNotificationMessage(message)) {
     if (!bot.handlers.startGameNotification) {
-      return { newBotState: context.botState, messages: [] }
+      return { newContext: context, messages: [] }
     }
 
     const { state: newBotState } = bot.handlers.startGameNotification(context.botState)
 
-    return { newBotState, messages: [] }
+    return { newContext: { botState: newBotState }, messages: [] }
   }
 
   if (isJoinGameNotificationMessage(message)) {
     if (!bot.handlers.joinGameNotification) {
-      return { newBotState: context.botState, messages: [] }
+      return { newContext: context, messages: [] }
     }
 
     const { details } = message
     const { state: newBotState } = bot.handlers.joinGameNotification({ data: details }, context.botState)
 
-    return { newBotState, messages: [] }
+    return { newContext: { botState: newBotState }, messages: [] }
   }
 
   if (isPlayerHitNotificationMessage(message)) {
     if (!bot.handlers.hitNotification) {
-      return { newBotState: context.botState, messages: [] }
+      return { newContext: context, messages: [] }
     }
 
     const { data } = message
     const { state: newBotState } = bot.handlers.hitNotification(data, context.botState)
 
-    return { newBotState, messages: [] }
+    return { newContext: { botState: newBotState }, messages: [] }
   }
 
   if (isTickNotification(message)) {
     if (!bot.handlers.tickNotification) {
-      return { newBotState: context.botState, messages: [] }
+      return { newContext: context, messages: [] }
     }
 
-    const { state: newBotState, request } = bot.handlers.tickNotification(context.botState)
+    const { state: newBotState, request } = bot.handlers.tickNotification(context.botState, { inFlightRequest: context.inFlightRequest })
     let messages: RequestMessage[] = []
     const messageFromRequest = requestToMessage(request)
 
@@ -300,12 +309,14 @@ export function messageDispatcher<S> (message: any, bot: BotAPI<S>, context: { b
       messages = [messageFromRequest]
     }
 
-    return { newBotState, messages }
+    const newContext: DispatcherContext<S> = { botState: newBotState, inFlightRequest: request }
+
+    return { newContext, messages }
   }
 
   console.log('unexpected message')
   console.dir(message, { colors: true, depth: null })
 
-  return { newBotState: context.botState, messages: [] }
+  return { newContext: context, messages: [] }
 }
 

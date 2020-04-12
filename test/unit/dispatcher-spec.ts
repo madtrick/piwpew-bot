@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import * as sinon from 'sinon'
+import sinon from 'sinon'
 import {
   MessageTypes,
   ResponseTypes,
@@ -7,8 +7,9 @@ import {
   RequestTypes as MessageRequestTypes,
   JoinGameNotificationMessage
 } from '../../src/messages'
-import { RequestTypes, MovementDirection } from '../../src/requests'
-import { messageDispatcher } from '../../src/message-dispatcher'
+import { RequestTypes, MovementDirection, shootRequest, deployMineRequest, moveForwardRequest, rotateRequest } from '../../src/requests'
+import { messageDispatcher, DispatcherContext } from '../../src/message-dispatcher'
+import { BotAPI } from '../../src/types'
 
 const generateRequestMessage = (fn: (message: any, request: any) => void) => {
   return () => {
@@ -62,6 +63,8 @@ const generateRequestMessage = (fn: (message: any, request: any) => void) => {
 }
 
 describe('Message dispatcher', () => {
+  let bot: BotAPI<any>
+
   describe('Register player response', () => {
     const message = {
       type: MessageTypes.Response,
@@ -80,7 +83,7 @@ describe('Message dispatcher', () => {
         registerPlayerResponse: sinon.stub().returns({ state: {} })
       }
     }
-    const context = { botState: {} }
+    const context: DispatcherContext<{}> = { botState: {} }
 
     it('dispatchs the message', () => {
       messageDispatcher(message, bot, context)
@@ -94,9 +97,9 @@ describe('Message dispatcher', () => {
     it('returns the new state', () => {
       const state = { foo: 'bar' }
       bot.handlers.registerPlayerResponse.returns({ state })
-      const { newBotState } = messageDispatcher(message, bot, context)
+      const { newContext } = messageDispatcher(message, bot, context)
 
-      expect(newBotState).to.eql(state)
+      expect(newContext.botState).to.eql(state)
     })
   })
 
@@ -105,25 +108,26 @@ describe('Message dispatcher', () => {
       type: MessageTypes.Notification,
       id: NotificationTypes.StartGame
     }
-    const bot = {
-      handlers: {
-        startGameNotification: sinon.stub().returns({ state: {} })
-      }
-    }
+    let startGameNotification: sinon.SinonStub
     const context = { botState: {} }
+
+    beforeEach(() => {
+      startGameNotification = sinon.stub().returns({ state: {} })
+      bot = { handlers: { startGameNotification } }
+    })
 
     it('dispatchs the message', () => {
       messageDispatcher(message, bot, context)
 
-      expect(bot.handlers.startGameNotification).to.have.been.calledOnceWith(context.botState)
+      expect(startGameNotification).to.have.been.calledOnceWith(context.botState)
     })
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.startGameNotification.returns({ state })
-      const { newBotState } = messageDispatcher(message, bot, context)
+      startGameNotification.returns({ state })
+      const { newContext } = messageDispatcher(message, bot, context)
 
-      expect(newBotState).to.eql(state)
+      expect(newContext.botState).to.eql(state)
     })
   })
 
@@ -146,17 +150,18 @@ describe('Message dispatcher', () => {
       }
     }
 
-    const bot = {
-      handlers: {
-        joinGameNotification: sinon.stub().returns({ state: {} })
-      }
-    }
+    let joinGameNotification: sinon.SinonStub
     const context = { botState: {} }
+
+    beforeEach(() => {
+      joinGameNotification = sinon.stub().returns({ state: {} })
+      bot = { handlers: { joinGameNotification } }
+    })
 
     it('dispatchs the message', () => {
       messageDispatcher(message, bot, context)
 
-      expect(bot.handlers.joinGameNotification).to.have.been.calledOnceWith(
+      expect(joinGameNotification).to.have.been.calledOnceWith(
         { data: message.details },
         context.botState
       )
@@ -164,10 +169,10 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.joinGameNotification.returns({ state })
-      const { newBotState } = messageDispatcher(message, bot, context)
+      joinGameNotification.returns({ state })
+      const { newContext } = messageDispatcher(message, bot, context)
 
-      expect(newBotState).to.eql(state)
+      expect(newContext.botState).to.eql(state)
     })
   })
 
@@ -189,17 +194,18 @@ describe('Message dispatcher', () => {
         }
       }
     }
-    const bot = {
-      handlers: {
-        movePlayerResponse: sinon.stub().returns({ state: {} })
-      }
-    }
-    const context = { botState: {} }
+    let movePlayerResponse: sinon.SinonStub
+    const context = { botState: {}, inFlightRequest: moveForwardRequest({ withTurbo: false }) }
+
+    beforeEach(() => {
+      movePlayerResponse = sinon.stub().returns({ state: {} })
+      bot = { handlers: { movePlayerResponse } }
+    })
 
     it('dispatchs the message', () => {
       messageDispatcher(message, bot, context)
 
-      expect(bot.handlers.movePlayerResponse).to.have.been.calledOnceWith(
+      expect(movePlayerResponse).to.have.been.calledOnceWith(
         {
           success: true,
           data: {
@@ -217,10 +223,16 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.movePlayerResponse.returns({ state })
-      const { newBotState } = messageDispatcher(message, bot, context)
+      movePlayerResponse.returns({ state })
+      const { newContext } = messageDispatcher(message, bot, context)
 
-      expect(newBotState).to.eql(state)
+      expect(newContext.botState).to.eql(state)
+    })
+
+    it('sets the "inFlightRequest" flag to undefined', () => {
+      const { newContext } = messageDispatcher(message, bot, context)
+
+      expect(newContext.inFlightRequest).to.be.undefined
     })
   })
 
@@ -241,17 +253,18 @@ describe('Message dispatcher', () => {
         }
       }
     }
-    const bot = {
-      handlers: {
-        rotatePlayerResponse: sinon.stub().returns({ state: {} })
-      }
-    }
-    const context = { botState: {} }
+    let rotatePlayerResponse: sinon.SinonStub
+    const context = { botState: {}, inFlightRequest: rotateRequest(90) }
+
+    beforeEach(() => {
+      rotatePlayerResponse = sinon.stub().returns({ state: {} })
+      bot = { handlers: { rotatePlayerResponse } }
+    })
 
     it('dispatchs the message', () => {
       messageDispatcher(message, bot, context)
 
-      expect(bot.handlers.rotatePlayerResponse).to.have.been.calledOnceWith(
+      expect(rotatePlayerResponse).to.have.been.calledOnceWith(
         {
           success: true,
           data: {
@@ -268,10 +281,16 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.rotatePlayerResponse.returns({ state })
-      const { newBotState } = messageDispatcher(message, bot, context)
+      rotatePlayerResponse.returns({ state })
+      const { newContext } = messageDispatcher(message, bot, context)
 
-      expect(newBotState).to.eql(state)
+      expect(newContext.botState).to.eql(state)
+    })
+
+    it('sets the "inFlightRequest" flag to undefined', () => {
+      const { newContext } = messageDispatcher(message, bot, context)
+
+      expect(newContext.inFlightRequest).to.be.undefined
     })
   })
 
@@ -291,17 +310,18 @@ describe('Message dispatcher', () => {
         }
       }
     }
-    const bot = {
-      handlers: {
-        shootResponse: sinon.stub().returns({ state: {} })
-      }
-    }
-    const context = { botState: {} }
+    let shootResponse: sinon.SinonStub
+    const context = { botState: {}, inFlightRequest: shootRequest() }
+
+    beforeEach(() => {
+      shootResponse = sinon.stub().returns({ state: {} })
+      bot = { handlers: { shootResponse } }
+    })
 
     it('dispatchs the message', () => {
       messageDispatcher(message, bot, context)
 
-      expect(bot.handlers.shootResponse).to.have.been.calledOnceWith(
+      expect(shootResponse).to.have.been.calledOnceWith(
         {
           success: true,
           data: {
@@ -317,10 +337,16 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.shootResponse.returns({ state })
-      const { newBotState } = messageDispatcher(message, bot, context)
+      shootResponse.returns({ state })
+      const { newContext } = messageDispatcher(message, bot, context)
 
-      expect(newBotState).to.eql(state)
+      expect(newContext.botState).to.eql(state)
+    })
+
+    it('sets the "inFlightRequest" flag to undefined', () => {
+      const { newContext } = messageDispatcher(message, bot, context)
+
+      expect(newContext.inFlightRequest).to.be.undefined
     })
   })
 
@@ -340,17 +366,18 @@ describe('Message dispatcher', () => {
         }
       }
     }
-    const bot = {
-      handlers: {
-        deployMineResponse: sinon.stub().returns({ state: {} })
-      }
-    }
-    const context = { botState: {} }
+    let deployMineResponse: sinon.SinonStub
+    const context = { botState: {}, inFlightRequest: deployMineRequest() }
+
+    beforeEach(() => {
+      deployMineResponse = sinon.stub().returns({ state: {} })
+      bot = { handlers: { deployMineResponse } }
+    })
 
     it('dispatchs the message', () => {
       messageDispatcher(message, bot, context)
 
-      expect(bot.handlers.deployMineResponse).to.have.been.calledOnceWith(
+      expect(deployMineResponse).to.have.been.calledOnceWith(
         {
           success: true,
           data: {
@@ -366,10 +393,16 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.deployMineResponse.returns({ state })
-      const { newBotState } = messageDispatcher(message, bot, context)
+      deployMineResponse.returns({ state })
+      const { newContext } = messageDispatcher(message, bot, context)
 
-      expect(newBotState).to.eql(state)
+      expect(newContext.botState).to.eql(state)
+    })
+
+    it('sets the "inFlightRequest" flag to undefined', () => {
+      const { newContext } = messageDispatcher(message, bot, context)
+
+      expect(newContext.inFlightRequest).to.be.undefined
     })
   })
 
@@ -384,17 +417,18 @@ describe('Message dispatcher', () => {
         unknown: [{ x: 90, y: 90 }]
       }
     }
-    const bot = {
-      handlers: {
-        radarScanNotification: sinon.stub().returns({ state: {} })
-      }
-    }
+    let radarScanNotification: sinon.SinonStub
     const context = { botState: {} }
+
+    beforeEach(() => {
+      radarScanNotification = sinon.stub().returns({ state: {} })
+      bot = { handlers: { radarScanNotification } }
+    })
 
     it('dispatchs the message', () => {
       messageDispatcher(message, bot, context)
 
-      expect(bot.handlers.radarScanNotification).to.have.been.calledOnceWith(
+      expect(radarScanNotification).to.have.been.calledOnceWith(
         { data: message.data },
         context.botState
       )
@@ -402,10 +436,10 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.radarScanNotification.returns({ state })
-      const { newBotState } = messageDispatcher(message, bot, context)
+      radarScanNotification.returns({ state })
+      const { newContext } = messageDispatcher(message, bot, context)
 
-      expect(newBotState).to.eql(state)
+      expect(newContext.botState).to.eql(state)
     })
   })
 
@@ -417,17 +451,18 @@ describe('Message dispatcher', () => {
         damage: 1
       }
     }
-    const bot = {
-      handlers: {
-        hitNotification: sinon.stub().returns({ state: {} })
-      }
-    }
+    let hitNotification: sinon.SinonStub
     const context = { botState: {} }
+
+    beforeEach(() => {
+      hitNotification = sinon.stub().returns({ state: {} })
+      bot = { handlers: { hitNotification } }
+    })
 
     it('dispatchs the message', () => {
       messageDispatcher(message, bot, context)
 
-      expect(bot.handlers.hitNotification).to.have.been.calledOnceWith(
+      expect(hitNotification).to.have.been.calledOnceWith(
         message.data,
         context.botState
       )
@@ -435,10 +470,10 @@ describe('Message dispatcher', () => {
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.hitNotification.returns({ state })
-      const { newBotState } = messageDispatcher(message, bot, context)
+      hitNotification.returns({ state })
+      const { newContext } = messageDispatcher(message, bot, context)
 
-      expect(newBotState).to.eql(state)
+      expect(newContext.botState).to.eql(state)
     })
   })
 
@@ -447,31 +482,51 @@ describe('Message dispatcher', () => {
       type: MessageTypes.Notification,
       id: NotificationTypes.Tick
     }
-    const bot = {
-      handlers: {
-        tickNotification: sinon.stub().returns({ state: {} })
-      }
-    }
+    let tickNotification: sinon.SinonStub
     const context = { botState: {} }
+
+    beforeEach(() => {
+      tickNotification = sinon.stub().returns({ state: {} })
+      bot = { handlers: { tickNotification } }
+    })
 
     it('dispatchs the message', () => {
       messageDispatcher(message, bot, context)
 
-      expect(bot.handlers.tickNotification).to.have.been.calledOnceWith(
+      expect(tickNotification).to.have.been.calledOnceWith(
         context.botState
       )
     })
 
     it('returns the new state', () => {
       const state = { foo: 'bar' }
-      bot.handlers.tickNotification.returns({ state, requests: [] })
-      const { newBotState } = messageDispatcher(message, bot, context)
+      tickNotification.returns({ state, requests: [] })
+      const { newContext } = messageDispatcher(message, bot, context)
 
-      expect(newBotState).to.eql(state)
+      expect(newContext.botState).to.eql(state)
+    })
+
+    it('stores in the context "inFlightRequests" the returned request', () => {
+      const state = { foo: 'bar' }
+      tickNotification.returns({ state, request: 'bar' })
+
+      const { newContext } = messageDispatcher(message, bot, context)
+
+      expect(newContext.inFlightRequest).to.eql('bar')
+    })
+
+    it('passes the "inFlightRequest" to the handler', () => {
+      const request = shootRequest()
+      messageDispatcher(message, bot, { ...context, inFlightRequest: request })
+
+      expect(tickNotification).to.have.been.calledWith(
+        context.botState,
+        { inFlightRequest: request }
+      )
     })
 
     it('returns the request transformed as a message', generateRequestMessage((request, expectedMessage) => {
-      bot.handlers.tickNotification.returns({ state: {}, request })
+      tickNotification.returns({ state: {}, request })
       const { messages } = messageDispatcher(message, bot, context)
 
       expect(messages[0]).to.eql(expectedMessage)

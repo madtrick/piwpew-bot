@@ -25,7 +25,6 @@
     "*.ts",
     "./src/**/*",
     "./test/**/*",
-    "./examples/**/*.ts",
-    "./untracked-examples/*.ts"
+    "./examples/**/*.ts"
   ]
 }
