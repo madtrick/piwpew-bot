@@ -7,13 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [5.0.1] - 2020-04-08
+## [5.0.2] - 2020-04-13
+
+### Fixed
+
+* Install `Typescript` as a prod dependency so installs which only have `Typescript` as dev dependency and prune non-prod dependencies can still execute their `Typescript` bots.
+
+## [5.0.1] - 2020-04-12
 
 ### Fixed
 
 * The message dispatcher was resetting the `inFlighRequest` when a notification was received
 
-## [5.0.0] - 2020-04-08
+## [5.0.0] - 2020-04-12
 
 ### Changed
 
