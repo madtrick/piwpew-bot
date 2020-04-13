@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.1.0] - 2020-04-13
+
+### Added
+
+* Exit on `SIGTERM` signal
+
 ## [5.0.2] - 2020-04-13
 
 ### Fixed
