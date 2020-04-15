@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.1.1] - 2020-04-15
+
+### Fixed
+
+* Do not override with `undefined` an existing `inFlightRequest` if the `tickNotification` handler does not return a new request
+
 ## [5.1.0] - 2020-04-13
 
 ### Added
