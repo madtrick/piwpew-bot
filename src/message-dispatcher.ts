@@ -303,13 +303,19 @@ export function messageDispatcher<S> (
 
     const { state: newBotState, request } = bot.handlers.tickNotification(context.botState, { inFlightRequest: context.inFlightRequest })
     let messages: RequestMessage[] = []
+    let inFlightRequest = context.inFlightRequest
     const messageFromRequest = requestToMessage(request)
+
+    if (request) {
+      inFlightRequest = request
+    }
 
     if (messageFromRequest) {
       messages = [messageFromRequest]
     }
 
-    const newContext: DispatcherContext<S> = { botState: newBotState, inFlightRequest: request }
+
+    const newContext: DispatcherContext<S> = { botState: newBotState, inFlightRequest }
 
     return { newContext, messages }
   }
