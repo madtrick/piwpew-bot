@@ -553,6 +553,13 @@ describe('Message dispatcher', () => {
       )
     })
 
+    it('does not override the "inFlightRequest" if the handler returns an undefined "request"', () => {
+      const request = shootRequest()
+      const result = messageDispatcher(message, bot, { ...context, inFlightRequest: request })
+
+      expect(result.newContext.inFlightRequest).to.eql(request)
+    })
+
     it('returns the request transformed as a message', generateRequestMessage((request, expectedMessage) => {
       tickNotification.returns({ state: {}, request })
       const { messages } = messageDispatcher(message, bot, context)
