@@ -5,9 +5,7 @@ import { Channel, createLogChannel, WebSocketChannel } from './channel'
 import { messageDispatcher } from './message-dispatcher'
 
 import {
-  MessageTypes,
-  RequestTypes,
-  RegisterPlayerRequestMessage
+  registerPlayerRequestMessage
 } from './messages'
 import { BotAPI } from './bot'
 
@@ -78,16 +76,7 @@ channel.on('open', function open (): void {
       })
     })
 
-    const message: RegisterPlayerRequestMessage = {
-      type: MessageTypes.Request,
-      id: RequestTypes.RegisterPlayer,
-      data: {
-        game: {
-          version: '2.1.2'
-        },
-        id: playerId
-      }
-    }
+    const message = registerPlayerRequestMessage(playerId)
 
     writeMessagesToFile('send', message)
     channel.send(JSON.stringify(message))

@@ -1,16 +1,9 @@
-import { BotAPI, Rotation } from './types'
+import { BotAPI } from './types'
 import {
   Request,
-  RequestTypes,
-  MovementDirection
+  RequestTypes
 } from './requests'
 import {
-  MessageTypes,
-  RequestTypes as MessageRequestTypes,
-  MovePlayerRequestMessage,
-  RotatePlayerRequestMessage,
-  ShootRequestMessage,
-  DeployMineRequestMessage,
   isRegisterPlayerResponseMessage,
   isMovePlayerResponseMessage,
   isRotatePlayerResponseMessage,
@@ -20,79 +13,39 @@ import {
   isShootResponseMessage,
   isDeployMineResponseMessage,
   isPlayerHitNotificationMessage,
-  isTickNotification
+  isTickNotification,
+  movePlayerRequestMessage,
+  rotatePlayerRequestMessage,
+  shootRequestMessage,
+  deployMineRequestMessage,
+  RequestMessage,
+  MessageTypes
 } from './messages'
-
-type RequestMessage = MovePlayerRequestMessage | ShootRequestMessage | DeployMineRequestMessage | RotatePlayerRequestMessage
 
 function requestToMessage (request: Request | undefined): RequestMessage | undefined {
   if (request && request.type === RequestTypes.Move) {
-    return move(request.data.direction, request.data.withTurbo)
+    return movePlayerRequestMessage(request.data.direction, request.data.withTurbo)
   }
 
   if (request && request.type === RequestTypes.Shoot) {
-    return shoot()
+    return shootRequestMessage()
   }
 
   if (request && request.type === RequestTypes.Rotate) {
-    return rotate(request.data.rotation)
+    return rotatePlayerRequestMessage(request.data.rotation)
   }
 
   if (request && request.type === RequestTypes.DeployMine) {
-    return deployMine()
+    return deployMineRequestMessage()
   }
 
   return undefined
 }
 
-function move (direction: MovementDirection, withTurbo: boolean): MovePlayerRequestMessage {
-  const data: MovePlayerRequestMessage = {
-    type: MessageTypes.Request,
-    id: MessageRequestTypes.MovePlayer,
-    data: {
-      movement: {
-        direction,
-        withTurbo
-      }
-    }
-  }
-
-  return data
-}
-
-function rotate (rotation: Rotation): RotatePlayerRequestMessage {
-  const data: RotatePlayerRequestMessage = {
-    type: MessageTypes.Request,
-    id: MessageRequestTypes.RotatePlayer,
-    data: {
-      rotation
-    }
-  }
-
-  return data
-}
-
-function shoot (): ShootRequestMessage {
-  const data: ShootRequestMessage = {
-    type: MessageTypes.Request,
-    id: MessageRequestTypes.Shoot
-  }
-
-  return data
-}
-
-function deployMine (): DeployMineRequestMessage {
-  const data: DeployMineRequestMessage = {
-    type: MessageTypes.Request,
-    id: MessageRequestTypes.DeployMine
-  }
-
-  return data
-}
-
 export type DispatcherContext<S> = {
   botState: S
   inFlightRequest?: Request
+  inFlightRequestMessage?: RequestMessage
 }
 
 export function messageDispatcher<S> (
@@ -100,30 +53,80 @@ export function messageDispatcher<S> (
   bot: BotAPI<S>,
   context: DispatcherContext<S>
 ): { newContext: DispatcherContext<S>, messages: any[] } {
+  if (bot.onMessage) {
+    if (
+      isRegisterPlayerResponseMessage(message) ||
+      isMovePlayerResponseMessage(message) ||
+      isRotatePlayerResponseMessage(message) ||
+      isShootResponseMessage(message) ||
+      isDeployMineResponseMessage(message) ||
+      isRadarScanNotificationMessage(message) ||
+      isPlayerHitNotificationMessage(message) ||
+      isStartGameNotificationMessage(message) ||
+      isJoinGameNotificationMessage(message) ||
+      isTickNotification(message)
+    ) {
+      if ( context.inFlightRequestMessage && message.type === MessageTypes.Response) {
+        if (context.inFlightRequestMessage.id === message.id) {
+          delete context.inFlightRequestMessage
+        } else {
+          throw new Error(`Unexpected response "${message.id}" expected "${context.inFlightRequestMessage.id}"`)
+        }
+      }
+
+      const { state: newBotState, request } = bot.onMessage(
+        { message },
+        context.botState,
+        { inFlightRequestMessage: context.inFlightRequestMessage }
+      )
+      let messages: RequestMessage[] = []
+      let inFlightRequestMessage: RequestMessage | undefined = context.inFlightRequestMessage
+
+      if (request) {
+        inFlightRequestMessage = request
+        messages = [request]
+      }
+
+      const newContext: DispatcherContext<S> = { botState: newBotState, inFlightRequestMessage }
+
+      return { newContext, messages }
+    }
+  }
+
   if (isRegisterPlayerResponseMessage(message)) {
     if (!bot.handlers.registerPlayerResponse) {
       return { newContext: context, messages: [] }
     }
 
-    // TODO handle all kind of requests from all message handlers
-    if (message.success === false) {
-      const { state: newBotState } = bot.handlers.registerPlayerResponse(
-        { success: message.success, data: 'Failed player register' },
-        context.botState
-      )
+    // Have to use a switch statement to get the discriminated union type
+    // oer the message.success property working
+    //
+    // https://stackoverflow.com/a/51969193
+    //
+    // Having to resort to a switch seems to be a bug in the
+    // compiler
+    //
+    // https://github.com/microsoft/TypeScript/issues/30763
+    let result: { state: S }
+    switch (message.success) {
+      case true:
+        if (typeof message.details !== 'object') {
+          throw new Error('invalid response message')
+        }
 
-      return { newContext: { botState: newBotState }, messages: [] }
-    } else {
-      if (typeof message.details !== 'object') {
-        throw new Error('invalid response message')
-      }
+        result = bot.handlers.registerPlayerResponse(
+          { success: true, data: message.details },
+          context.botState
+        )
 
-      const { state: newBotState } = bot.handlers.registerPlayerResponse(
-        { success: true, data: message.details },
-        context.botState
-      )
+        return { newContext: { botState: result.state }, messages: [] }
+      case false:
+        const { state } = bot.handlers.registerPlayerResponse(
+          { success: message.success, data: 'Failed player register' },
+          context.botState
+        )
 
-      return { newContext: { botState: newBotState }, messages: [] }
+        return { newContext: { botState: state }, messages: [] }
     }
   }
 
@@ -132,26 +135,28 @@ export function messageDispatcher<S> (
       return { newContext: context, messages: [] }
     }
 
-    if (message.success === false) {
-      const { state: newBotState } = bot.handlers.movePlayerResponse(
-        { success: false, data: 'Failed to move player' },
-        context.botState
-      )
+    let result: { state: S }
+    switch (message.success) {
+      case true:
+        if (typeof message.data !== 'object') {
+          throw new Error('invalid response message')
+        }
 
-      return { newContext: { botState: newBotState }, messages: [] }
-    } else {
-      if (typeof message.data !== 'object') {
-        throw new Error('invalid response message')
-      }
+        const { position, tokens } = message.data.component.details
+        const requestDetails = message.data.request
+        result = bot.handlers.movePlayerResponse(
+          { success: true, data: { position, tokens, request: requestDetails } },
+          context.botState
+        )
 
-      const { position, tokens } = message.data.component.details
-      const requestDetails = message.data.request
-      const { state: newBotState } = bot.handlers.movePlayerResponse(
-        { success: true, data: { position, tokens, request: requestDetails } },
-        context.botState
-      )
+        return { newContext: { botState: result.state }, messages: [] }
+      case false:
+        result = bot.handlers.movePlayerResponse(
+          { success: false, data: 'Failed to move player' },
+          context.botState
+        )
 
-      return { newContext: { botState: newBotState }, messages: [] }
+        return { newContext: { botState: result.state }, messages: [] }
     }
   }
 
@@ -160,28 +165,29 @@ export function messageDispatcher<S> (
       return { newContext: context, messages: [] }
     }
 
-    if (message.success === false) {
-      // TODO handle possible response messages
-      const { state: newBotState } = bot.handlers.rotatePlayerResponse(
-        { success: false, data: 'Failed to rotate player' },
-        context.botState
-      )
+    let result: { state: S }
+    switch(message.success) {
+      case true:
+        if (typeof message.data !== 'object') {
+          throw new Error('invalid response message')
+        }
 
-      return { newContext: { botState: newBotState }, messages: [] }
+        const { rotation, tokens } = message.data.component.details
+        const requestDetails = message.data.request
+        result = bot.handlers.rotatePlayerResponse(
+          { success: message.success, data: { rotation, tokens, request: requestDetails } },
+          context.botState
+        )
+
+        return { newContext: { botState: result.state }, messages: [] }
+      case false:
+        result = bot.handlers.rotatePlayerResponse(
+          { success: false, data: 'Failed to rotate player' },
+          context.botState
+        )
+
+        return { newContext: { botState: result.state }, messages: [] }
     }
-
-    if (typeof message.data !== 'object') {
-      throw new Error('invalid response message')
-    }
-
-    const { rotation, tokens } = message.data.component.details
-    const requestDetails = message.data.request
-    const { state: newBotState } = bot.handlers.rotatePlayerResponse(
-      { success: message.success, data: { rotation, tokens, request: requestDetails } },
-      context.botState
-    )
-
-    return { newContext: { botState: newBotState }, messages: [] }
   }
 
   if (isShootResponseMessage(message)) {
@@ -189,34 +195,36 @@ export function messageDispatcher<S> (
       return { newContext: context, messages: [] }
     }
 
-    if (message.success === false) {
-      // TODO handle possible response messages
-      const { state: newBotState } = bot.handlers.shootResponse(
-        { success: false, data: 'Failed to shoot' },
-        context.botState
-      )
-
-      return { newContext: { botState: newBotState }, messages: [] }
-    }
-
-    if (typeof message.data !== 'object') {
-      throw new Error('invalid response message')
-    }
-
-    const { tokens } = message.data.component.details
-    const requestDetails = message.data.request
-    const { state: newBotState } = bot.handlers.shootResponse(
-      {
-        success: message.success,
-        data: {
-          tokens,
-          request: requestDetails
+    let result: { state: S }
+    switch (message.success) {
+      case true:
+        if (typeof message.data !== 'object') {
+          throw new Error('invalid response message')
         }
-      },
-      context.botState
-    )
 
-    return { newContext: { botState: newBotState }, messages: [] }
+        const { tokens } = message.data.component.details
+        const requestDetails = message.data.request
+        result = bot.handlers.shootResponse(
+          {
+            success: message.success,
+            data: {
+              tokens,
+              request: requestDetails
+            }
+          },
+          context.botState
+        )
+
+        return { newContext: { botState: result.state }, messages: [] }
+      case false:
+        // TODO handle possible response messages
+        const { state } = bot.handlers.shootResponse(
+          { success: false, data: 'Failed to shoot' },
+          context.botState
+        )
+
+        return { newContext: { botState: state }, messages: [] }
+    }
   }
 
   if (isDeployMineResponseMessage(message)) {
@@ -224,29 +232,31 @@ export function messageDispatcher<S> (
       return { newContext: context, messages: [] }
     }
 
-    if (message.success === false) {
-      // TODO handle possible response messages
-      const { state: newBotState } = bot.handlers.deployMineResponse(
-        { success: false, data: 'Failed to deploy mine' },
-        context.botState
-      )
+    let result: { state: S }
+    switch (message.success) {
+      case true:
+        if (typeof message.data !== 'object') {
+          throw new Error('invalid response message')
+        }
 
-      return { newContext: { botState: newBotState }, messages: [] }
+        const { tokens } = message.data.component.details
+        const requestDetails = message.data.request
+
+        result = bot.handlers.deployMineResponse(
+          { success: message.success, data: { tokens, request: requestDetails } },
+          context.botState
+        )
+
+        return { newContext: { botState: result.state }, messages: [] }
+      case false:
+        // TODO handle possible response messages
+        const { state } = bot.handlers.deployMineResponse(
+          { success: false, data: 'Failed to deploy mine' },
+          context.botState
+        )
+
+        return { newContext: { botState: state }, messages: [] }
     }
-
-    if (typeof message.data !== 'object') {
-      throw new Error('invalid response message')
-    }
-
-    const { tokens } = message.data.component.details
-    const requestDetails = message.data.request
-
-    const { state: newBotState } = bot.handlers.deployMineResponse(
-      { success: message.success, data: { tokens, request: requestDetails } },
-      context.botState
-    )
-
-    return { newContext: { botState: newBotState }, messages: [] }
   }
 
   if (isRadarScanNotificationMessage(message)) {
