@@ -1,4 +1,4 @@
-import { Rotation, Position } from './types'
+import { Rotation, Position, ScannedPlayer, ScannedUnknown, ScannedMine, ScannedShot } from './types'
 import { MovementDirection } from './requests'
 
 export enum MessageTypes {
@@ -42,11 +42,35 @@ export interface RegisterPlayerRequestMessage {
   }
 }
 
-export interface RegisterPlayerResponseMessage {
+export function registerPlayerRequestMessage (id: string): RegisterPlayerRequestMessage {
+  const message: RegisterPlayerRequestMessage = {
+    type: MessageTypes.Request,
+    id: RequestTypes.RegisterPlayer,
+    data: {
+      game: {
+        version: '2.1.2'
+      },
+      id
+    }
+  }
+
+  return message
+}
+
+export interface FailedRegisterPlayerResponseMessage {
   type: MessageTypes.Response
   id: ResponseTypes.RegisterPlayer
-  success: boolean
-  details?: {
+  success: false
+  details: {
+    msg: string
+  }
+}
+
+export interface SuccessfulRegisterPlayerResponseMessage {
+  type: MessageTypes.Response
+  id: ResponseTypes.RegisterPlayer
+  success: true
+  details: {
     id: string
     position: Position
     rotation: Rotation
@@ -54,6 +78,8 @@ export interface RegisterPlayerResponseMessage {
     tokens: number
   }
 }
+
+export type RegisterPlayerResponseMessage = FailedRegisterPlayerResponseMessage | SuccessfulRegisterPlayerResponseMessage
 
 export interface MovePlayerRequestMessage {
   type: MessageTypes.Request
@@ -66,20 +92,36 @@ export interface MovePlayerRequestMessage {
   }
 }
 
-export interface RotatePlayerRequestMessage {
-  type: MessageTypes.Request
-  id: RequestTypes.RotatePlayer
-  data: {
-    rotation: Rotation
+export function movePlayerRequestMessage (direction: MovementDirection, withTurbo: boolean): MovePlayerRequestMessage {
+  const data: MovePlayerRequestMessage = {
+    type: MessageTypes.Request,
+    id: RequestTypes.MovePlayer,
+    data: {
+      movement: {
+        direction,
+        withTurbo
+      }
+    }
+  }
+
+  return data
+}
+
+
+export interface FailedMovePlayerResponseMessage {
+  type: MessageTypes.Response
+  id: ResponseTypes.MovePlayer
+  success: false
+  details: {
+    msg: string
   }
 }
 
-export interface MovePlayerResponseMessage {
+export interface SuccessfulMovePlayerResponseMessage {
   type: MessageTypes.Response
   id: ResponseTypes.MovePlayer
-  success: boolean
-  // details are only present if `success` === true
-  data?: {
+  success: true
+  data: {
     component: {
       details: {
         position: Position
@@ -93,12 +135,122 @@ export interface MovePlayerResponseMessage {
   }
 }
 
-export interface RotatePlayerResponseMessage {
+export type MovePlayerResponseMessage = FailedMovePlayerResponseMessage | SuccessfulMovePlayerResponseMessage
+
+export interface ShootRequestMessage {
+  type: MessageTypes.Request
+  id: RequestTypes.Shoot
+}
+
+export function shootRequestMessage (): ShootRequestMessage {
+  const data: ShootRequestMessage = {
+    type: MessageTypes.Request,
+    id: RequestTypes.Shoot
+  }
+
+  return data
+}
+
+
+export interface FailedShootResponseMessage {
+  type: MessageTypes.Response
+  id: ResponseTypes.Shoot
+  success: false
+}
+
+export interface SuccessfulShootResponseMessage {
+  type: MessageTypes.Response
+  id: ResponseTypes.Shoot
+  success: true
+  data: {
+    component: {
+      details: {
+        tokens: number
+      }
+    }
+    request: {
+      cost: number
+    }
+  }
+}
+
+export type ShootResponseMessage = FailedShootResponseMessage | SuccessfulShootResponseMessage
+
+export interface DeployMineRequestMessage {
+  type: MessageTypes.Request
+  id: RequestTypes.DeployMine
+}
+
+export function deployMineRequestMessage (): DeployMineRequestMessage {
+  const data: DeployMineRequestMessage = {
+    type: MessageTypes.Request,
+    id: RequestTypes.DeployMine
+  }
+
+  return data
+}
+
+export interface FailedDeployMineResponseMessage {
+  type: MessageTypes.Response
+  id: ResponseTypes.Shoot
+  success: false
+  details: {
+    msg: string
+  }
+}
+
+export interface SuccessfulDeployMineResponseMessage {
+  type: MessageTypes.Response
+  id: ResponseTypes.Shoot
+  success: boolean
+  data: {
+    component: {
+      details: {
+        tokens: number
+      }
+    }
+    request: {
+      cost: number
+    }
+  }
+}
+
+export type DeployMineResponseMessage = FailedDeployMineResponseMessage | SuccessfulDeployMineResponseMessage
+
+export interface RotatePlayerRequestMessage {
+  type: MessageTypes.Request
+  id: RequestTypes.RotatePlayer
+  data: {
+    rotation: Rotation
+  }
+}
+
+export function rotatePlayerRequestMessage (rotation: Rotation): RotatePlayerRequestMessage {
+  const data: RotatePlayerRequestMessage = {
+    type: MessageTypes.Request,
+    id: RequestTypes.RotatePlayer,
+    data: {
+      rotation
+    }
+  }
+
+  return data
+}
+
+export interface FailedRotatePlayerResponseMessage {
   type: MessageTypes.Response
   id: 'RotatePlayer'
-  success: boolean
-  // 'data' is only present if the rotation was successful
-  data?: {
+  success: false
+  details: {
+    msg: string
+  }
+}
+
+export interface SuccessfulRotatePlayerResponseMessage {
+  type: MessageTypes.Response
+  id: 'RotatePlayer'
+  success: true
+  data: {
     component: {
       details: {
         rotation: number
@@ -110,6 +262,22 @@ export interface RotatePlayerResponseMessage {
     }
   }
 }
+
+export type RotatePlayerResponseMessage = FailedRotatePlayerResponseMessage | SuccessfulRotatePlayerResponseMessage
+
+export type ResponseMessage =
+  RegisterPlayerResponseMessage
+  | MovePlayerResponseMessage
+  | RotatePlayerResponseMessage
+  | ShootResponseMessage
+  | DeployMineResponseMessage
+
+export type RequestMessage =
+  RegisterPlayerRequestMessage
+  | MovePlayerRequestMessage
+  | RotatePlayerRequestMessage
+  | ShootRequestMessage
+  | DeployMineRequestMessage
 
 export interface PlayerHitNotificationMessage {
   type: MessageTypes.Notification
@@ -123,53 +291,10 @@ export interface RadarScanNotificationMessage {
   type: MessageTypes.Notification
   id: NotificationTypes.RadarScan
   data: {
-    players: { position: Position, id: string, rotation: Rotation }[]
-    unknown: { position: Position }[]
-    mines: { position: Position }[]
-    shots: { position: Position, rotation: Rotation }[]
-  }
-}
-
-export interface ShootRequestMessage {
-  type: MessageTypes.Request
-  id: RequestTypes.Shoot
-}
-
-export interface ShootResponseMessage {
-  type: MessageTypes.Response
-  id: ResponseTypes.Shoot
-  success: boolean
-  // 'data' is only present if the request was successful
-  data?: {
-    component: {
-      details: {
-        tokens: number
-      }
-    }
-    request: {
-      cost: number
-    }
-  }
-}
-
-export interface DeployMineRequestMessage {
-  type: MessageTypes.Request
-  id: RequestTypes.DeployMine
-}
-
-export interface DeployMineResponseMessage {
-  type: MessageTypes.Response
-  id: ResponseTypes.Shoot
-  success: boolean
-  data: {
-    component: {
-      details: {
-        tokens: number
-      }
-    }
-    request: {
-      cost: number
-    }
+    players: ScannedPlayer[]
+    unknown: ScannedUnknown[]
+    mines: ScannedMine[]
+    shots: ScannedShot[]
   }
 }
 
@@ -201,10 +326,12 @@ export interface TickNotificationMessage {
   id: NotificationTypes.Tick
 }
 
-export interface RadarScan {
-  players: { position: Position }[]
-  unknown: { position: Position }[]
-}
+export type NotificationMessage = 
+  StartGameNofiticationMessage
+  | JoinGameNotificationMessage
+  | RadarScanNotificationMessage
+  | PlayerHitNotificationMessage
+  | TickNotificationMessage
 
 export function isRegisterPlayerResponseMessage (message: any): message is RegisterPlayerResponseMessage {
   const { type, id } = message
@@ -224,6 +351,19 @@ export function isRotatePlayerResponseMessage (message: any): message is RotateP
   return type === MessageTypes.Response && id === 'RotatePlayer'
 }
 
+export function isShootResponseMessage (message: any): message is ShootResponseMessage {
+  const { type, id } = message
+
+  return type === MessageTypes.Response && id === ResponseTypes.Shoot
+}
+
+export function isDeployMineResponseMessage (message: any): message is DeployMineResponseMessage {
+  const { type, id } = message
+
+  return type === MessageTypes.Response && id === ResponseTypes.DeployMine
+}
+
+
 export function isRadarScanNotificationMessage (message: any): message is RadarScanNotificationMessage {
   const { type, id } = message
 
@@ -242,18 +382,6 @@ export function isJoinGameNotificationMessage (message: any): message is JoinGam
   return type === MessageTypes.Notification && id === NotificationTypes.JoinGame
 }
 
-export function isShootResponseMessage (message: any): message is ShootResponseMessage {
-  const { type, id } = message
-
-  return type === MessageTypes.Response && id === ResponseTypes.Shoot
-}
-
-export function isDeployMineResponseMessage (message: any): message is DeployMineResponseMessage {
-  const { type, id } = message
-
-  return type === MessageTypes.Response && id === ResponseTypes.DeployMine
-}
-
 export function isTickNotification (message: any): message is TickNotificationMessage {
   const { type, id } = message
 
@@ -265,3 +393,4 @@ export function isPlayerHitNotificationMessage (message: any): message is Player
 
   return type === MessageTypes.Notification && id === NotificationTypes.Hit
 }
+

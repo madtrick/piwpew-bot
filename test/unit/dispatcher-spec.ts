@@ -5,7 +5,10 @@ import {
   ResponseTypes,
   NotificationTypes,
   RequestTypes as MessageRequestTypes,
-  JoinGameNotificationMessage
+  JoinGameNotificationMessage,
+  registerPlayerRequestMessage,
+  TickNotificationMessage,
+  shootRequestMessage
 } from '../../src/messages'
 import { RequestTypes, MovementDirection, shootRequest, deployMineRequest, moveForwardRequest, rotateRequest } from '../../src/requests'
 import { messageDispatcher, DispatcherContext } from '../../src/message-dispatcher'
@@ -64,6 +67,103 @@ const generateRequestMessage = (fn: (message: any, request: any) => void) => {
 
 describe('Message dispatcher', () => {
   let bot: BotAPI<any>
+
+  describe('onMessage', () => {
+    const registerPlayerResponseMessage = {
+      type: MessageTypes.Response,
+      id: ResponseTypes.RegisterPlayer,
+      success: true,
+      details: {
+        id: 'player-1',
+        position: { x: 100, y: 200 },
+        rotation: 359,
+        life: 100,
+        tokens: 150
+      }
+    }
+    const tickNotificationMessage: TickNotificationMessage = {
+      type: MessageTypes.Notification,
+      id: NotificationTypes.Tick
+    }
+    const registerPlayerRequestMsg = registerPlayerRequestMessage('player-1')
+    const context: DispatcherContext<{}> = { botState: {} }
+    let onMessage: sinon.SinonStub
+    let registerPlayerResponse: sinon.SinonStub
+
+    beforeEach(() => {
+      onMessage = sinon.stub().returns({ state: {} })
+      registerPlayerResponse = sinon.stub().returns({ state: {} })
+
+      bot = {
+        onMessage,
+        handlers: {
+          registerPlayerResponse
+        }
+      }
+    })
+
+    it('dispatchs the message', () => {
+      messageDispatcher(registerPlayerResponseMessage, bot, context)
+
+      expect(bot.onMessage).to.have.been.calledOnceWith(
+        { message: registerPlayerResponseMessage },
+        context.botState
+      )
+    })
+
+    it('returns the new state', () => {
+      const state = { foo: 'bar' }
+      onMessage.returns({ state })
+      const { newContext } = messageDispatcher(registerPlayerResponseMessage, bot, context)
+
+      expect(newContext.botState).to.eql(state)
+    })
+
+    it('does not call the message handler', () => {
+      messageDispatcher(registerPlayerResponseMessage, bot, context)
+
+      expect(registerPlayerResponse).to.not.have.been.called
+    })
+
+    it('stores in the context "inFlightRequestMessage" the returned request', () => {
+      const state = { foo: 'bar' }
+      onMessage.returns({ state, request: 'bar' })
+
+      const { newContext } = messageDispatcher(registerPlayerResponseMessage, bot, context)
+
+      expect(newContext.inFlightRequestMessage).to.eql('bar')
+    })
+
+    it('passes the "inFlightRequestMessage" to the handler', () => {
+      messageDispatcher(tickNotificationMessage, bot, { ...context, inFlightRequestMessage: registerPlayerRequestMsg })
+
+      expect(onMessage).to.have.been.calledWith(
+        { message: tickNotificationMessage },
+        context.botState,
+        { inFlightRequestMessage: registerPlayerRequestMsg }
+      )
+    })
+
+    it('resets the "inFlightRequest" when the response is received', () => {
+      const result = messageDispatcher(registerPlayerResponseMessage, bot, { ...context, inFlightRequestMessage: registerPlayerRequestMsg })
+
+      expect(result.newContext.inFlightRequestMessage).to.eql(undefined)
+    })
+
+    it('does not override the "inFlightRequest" if the handler returns an undefined "request"', () => {
+      const result = messageDispatcher(tickNotificationMessage, bot, { ...context, inFlightRequestMessage: registerPlayerRequestMsg })
+
+      expect(result.newContext.inFlightRequestMessage).to.eql(registerPlayerRequestMsg)
+    })
+
+    it('throws an error if the response does not correspond to the current in flight request', () => {
+      const request = shootRequestMessage()
+
+      expect(() => {
+        messageDispatcher(registerPlayerResponseMessage, bot, { ...context, inFlightRequestMessage: request })
+      }).to.throw(`Unexpected response "${registerPlayerResponseMessage.id}" expected "${request.id}"`)
+    })
+  })
 
   describe('Register player response', () => {
     const message = {

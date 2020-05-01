@@ -1,5 +1,62 @@
-import { Request } from './requests'
-export { Request }
+import { Request, MovementDirection } from './requests'
+import {
+  MovePlayerResponseMessage,
+  movePlayerRequestMessage,
+  isMovePlayerResponseMessage,
+  RotatePlayerResponseMessage,
+  rotatePlayerRequestMessage,
+  isRotatePlayerResponseMessage,
+  DeployMineResponseMessage,
+  isDeployMineResponseMessage,
+  ShootResponseMessage,
+  isShootResponseMessage,
+  shootRequestMessage,
+  RegisterPlayerResponseMessage,
+  isRegisterPlayerResponseMessage,
+  StartGameNofiticationMessage,
+  isStartGameNotificationMessage,
+  JoinGameNotificationMessage,
+  isJoinGameNotificationMessage,
+  RadarScanNotificationMessage,
+  isRadarScanNotificationMessage,
+  PlayerHitNotificationMessage,
+  isPlayerHitNotificationMessage,
+  ResponseMessage,
+  NotificationMessage,
+  isTickNotification,
+  RequestMessage,
+  ResponseTypes
+} from './messages'
+export {
+  Request,
+  MovementDirection,
+  MovePlayerResponseMessage,
+  movePlayerRequestMessage,
+  isMovePlayerResponseMessage,
+  RotatePlayerResponseMessage,
+  rotatePlayerRequestMessage,
+  isRotatePlayerResponseMessage,
+  DeployMineResponseMessage,
+  isDeployMineResponseMessage,
+  ShootResponseMessage,
+  isShootResponseMessage,
+  shootRequestMessage,
+  RegisterPlayerResponseMessage,
+  isRegisterPlayerResponseMessage,
+  StartGameNofiticationMessage,
+  isStartGameNotificationMessage,
+  JoinGameNotificationMessage,
+  isJoinGameNotificationMessage,
+  RadarScanNotificationMessage,
+  isRadarScanNotificationMessage,
+  PlayerHitNotificationMessage,
+  isPlayerHitNotificationMessage,
+  ResponseMessage,
+  NotificationMessage,
+  isTickNotification,
+  RequestMessage,
+  ResponseTypes
+}
 
 export interface Position {
   x: number
@@ -10,6 +67,11 @@ export type Rotation = number
 
 export interface BotAPI<S> {
   initState?: () => S
+  onMessage?: (
+    data: { message: ResponseMessage | NotificationMessage },
+    state: S,
+    context: { inFlightRequestMessage?: RequestMessage }
+  ) => { state: S, request?: RequestMessage }
 
   handlers: {
     radarScanNotification?: (
